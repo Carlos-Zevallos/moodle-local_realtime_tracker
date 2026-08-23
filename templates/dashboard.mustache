@@ -1,0 +1,90 @@
+<div class="mauri-dashboard-container p-4 bg-white shadow-sm border rounded">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h3 class="text-primary">{{#str}} generalreport, local_realtime_tracker {{/str}}</h3>
+    </div>
+    
+    <!-- Meta Header based on Image 1 -->
+    <div class="row mb-4 text-muted small">
+        <div class="col-md-4">
+            <strong>CENTRO DE FORMACION:</strong> {{centername}}<br>
+            <strong>Nº EXPEDIENTE:</strong> 3429909u90<br>
+            <strong>DENOMINACIÓN AAFF:</strong> {{coursename}}
+        </div>
+        <div class="col-md-4">
+            <strong>Nº CIF:</strong> {{cif}}<br>
+            <strong>ACCESO:</strong> Grupo de empresa<br>
+            <strong>MODALIDAD:</strong> {{modalidad}}
+        </div>
+    </div>
+
+    <!-- Role Filter -->
+    <div class="mb-4">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link {{#rolefilter}}student{{/rolefilter}}" href="reports.php?courseid={{courseid}}&action=general&role=student">Estudiantes</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{#rolefilter}}teacher{{/rolefilter}}" href="reports.php?courseid={{courseid}}&action=general&role=teacher">Docentes</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{#rolefilter}}all{{/rolefilter}}" href="reports.php?courseid={{courseid}}&action=general&role=all">Todos</a>
+            </li>
+        </ul>
+    </div>
+    
+    <!-- Script to set active pill -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var role = '{{rolefilter}}';
+            var links = document.querySelectorAll('.nav-pills .nav-link');
+            links.forEach(function(link) {
+                if (link.href.indexOf('role=' + role) !== -1) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('student', 'teacher', 'all'); // remove mustache literal
+                }
+            });
+        });
+    </script>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th style="color: white;">{{#str}} student, local_realtime_tracker {{/str}}</th>
+                    <th style="color: white;">{{#str}} firstaccess, local_realtime_tracker {{/str}}</th>
+                    <th style="color: white;">{{#str}} lastaccess, local_realtime_tracker {{/str}}</th>
+                    <th style="color: white;">{{#str}} totalaccesses, local_realtime_tracker {{/str}}</th>
+                    <th style="color: white;">{{#str}} activetime, local_realtime_tracker {{/str}}</th>
+                    <th style="color: white;">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#users}}
+                <tr>
+                    <td>
+                        <strong>{{fullname}}</strong><br>
+                        <small class="text-muted">{{email}}</small>
+                    </td>
+                    <td>{{firstaccess}}</td>
+                    <td>{{lastaccess}}</td>
+                    <td>{{accesses}}</td>
+                    <td><span class="badge badge-primary bg-primary">{{activetime}}</span></td>
+                    <td>
+                        <a href="reports.php?courseid={{courseid}}&action={{usertype}}&userid={{userid}}" class="btn btn-sm btn-info text-white">Ver ></a>
+                    </td>
+                </tr>
+                {{/users}}
+                {{^users}}
+                <tr><td colspan="6" class="text-center">No hay datos registrados.</td></tr>
+                {{/users}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-4 text-center text-muted">
+    <small>desarrollado por Ing. Carlos Zevallos | PLUGIN MAURI|</small>
+</div>
+

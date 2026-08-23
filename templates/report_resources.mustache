@@ -1,0 +1,253 @@
+<div class="mauri-dashboard">
+    <div class="row mb-4">
+        <div class="col-12">
+            <form class="form-inline" method="get" action="{{currenturl}}">
+                <div class="form-group mr-3">
+                    <label for="categoryid" class="mr-2">{{#str}}category{{/str}}</label>
+                    <select id="categoryid" name="categoryid" class="custom-select">
+                        <option value="0">Todas</option>
+                        {{#topcategories}}
+                            <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                        {{/topcategories}}
+                    </select>
+                </div>
+
+                <div class="form-group mr-3">
+                    <label for="subcategoryid" class="mr-2">Subcategoría</label>
+                    <select id="subcategoryid" name="subcategoryid" class="custom-select">
+                        <option value="0">Todas</option>
+                    </select>
+                </div>
+                
+                <div class="form-group mr-3">
+                    <label for="year" class="mr-2">Año</label>
+                    <input type="number" id="year" name="year" class="form-control" style="width: 100px;" value="{{year}}" placeholder="ej. 2026">
+                </div>
+
+                <div class="form-group mr-3">
+                    <label for="semester" class="mr-2">Semestre</label>
+                    <select id="semester" name="semester" class="custom-select">
+                        <option value="">Todos</option>
+                        <option value="01" {{#sem01}}selected{{/sem01}}>01 (Primero)</option>
+                        <option value="02" {{#sem02}}selected{{/sem02}}>02 (Segundo)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">{{#str}}filter{{/str}}</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var subcategories = {{{subcategories_json}}};
+        var categorySelect = document.getElementById('categoryid');
+        var subcategorySelect = document.getElementById('subcategoryid');
+        var selectedSubcategoryId = '{{subcategoryid}}';
+
+        function updateSubcategories() {
+            var parentId = categorySelect.value;
+            subcategorySelect.innerHTML = '<option value="0">Todas</option>';
+            if (parentId == 0) return;
+            
+            var filtered = subcategories.filter(function(sub) {
+                return sub.parent == parentId;
+            });
+            
+            filtered.forEach(function(sub) {
+                var option = document.createElement('option');
+                option.value = sub.id;
+                option.textContent = sub.name;
+                if (sub.id == selectedSubcategoryId) {
+                    option.selected = true;
+                }
+                subcategorySelect.appendChild(option);
+            });
+        }
+
+        categorySelect.addEventListener('change', function() {
+            selectedSubcategoryId = '0';
+            updateSubcategories();
+        });
+        
+        updateSubcategories();
+    });
+
+    function exportReport(format) {
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'export_resources.php';
+        
+        var params = {
+            'categoryid': '{{categoryid}}',
+            'subcategoryid': '{{subcategoryid}}',
+            'year': '{{year}}',
+            'semester': '{{semester}}',
+            'format': format
+        };
+        
+        // Try to get chart image
+        var canvas = document.querySelector('.card-body canvas');
+        if (canvas) {
+            params['chart_image'] = canvas.toDataURL('image/png');
+        }
+        
+        for (var key in params) {
+            if (params.hasOwnProperty(key)) {
+                var hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = key;
+                hiddenField.value = params[key];
+                form.appendChild(hiddenField);
+            }
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+
+    function emailReport() {
+        if (!confirm('¿Estás seguro de enviar los reportes personalizados a los correos de los docentes filtrados? Esto podría tardar unos momentos.')) {
+            return;
+        }
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'email_reports.php';
+        
+        var params = {
+            'categoryid': '{{categoryid}}',
+            'subcategoryid': '{{subcategoryid}}',
+            'year': '{{year}}',
+            'semester': '{{semester}}'
+        };
+        
+        for (var key in params) {
+            if (params.hasOwnProperty(key)) {
+                var hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = key;
+                hiddenField.value = params[key];
+                form.appendChild(hiddenField);
+            }
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+    </script>
+
+    <div class="row mb-4">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Distribución Total de Recursos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            {{{chart1}}}
+                        </div>
+                        <div class="col-md-8 offset-md-2">
+                            <table class="table table-bordered table-sm">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Recurso</th>
+                                        <th class="text-center">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{#chart_data}}
+                                    <tr>
+                                        <td>{{label}}</td>
+                                        <td class="text-center"><strong>{{value}}</strong></td>
+                                    </tr>
+                                    {{/chart_data}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Resultados</h5>
+            <div class="d-flex align-items-center">
+                <button type="button" class="btn btn-info mr-2" onclick="emailReport();">
+                    <i class="fa fa-envelope"></i> Enviar a Docentes
+                </button>
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-danger dropdown-toggle" type="button" id="exportResourcesDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-download"></i> Exportar
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="exportResourcesDropdown">
+                        <a class="dropdown-item" href="#" onclick="exportReport('pdf'); return false;"><i class="fa fa-file-pdf-o text-danger"></i> Exportar PDF</a>
+                        <a class="dropdown-item" href="#" onclick="exportReport('doc'); return false;"><i class="fa fa-file-word-o text-primary"></i> Exportar DOC</a>
+                        <a class="dropdown-item" href="#" onclick="exportReport('xlsx'); return false;"><i class="fa fa-file-excel-o text-success"></i> Exportar Excel</a>
+                        <a class="dropdown-item" href="#" onclick="exportReport('xml'); return false;"><i class="fa fa-file-code-o text-warning"></i> Exportar XML</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>{{#str}}school, local_realtime_tracker{{/str}}</th>
+                        <th>{{#str}}courses, local_realtime_tracker{{/str}}</th>
+                        <th>{{#str}}teacher, local_realtime_tracker{{/str}}</th>
+                        <th class="text-center">URL</th>
+                        <th class="text-center">Etiqueta</th>
+                        <th class="text-center">Tarea</th>
+                        <th class="text-center">Foros</th>
+                        <th class="text-center">Archivos</th>
+                        <th class="text-center">Teams</th>
+                        <th class="text-center">Folder</th>
+                        <th class="text-center">Recursos Compartidos</th>
+                        <th class="text-center">{{#str}}students, local_realtime_tracker{{/str}}</th>
+                        <th class="text-center">T. Conexión</th>
+                        <th class="text-center">T. Creación</th>
+                        <th class="text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#results}}
+                    <tr>
+                        <td>{{escuela}}</td>
+                        <td>{{cursos}}<br><small>{{{link_curso}}}</small></td>
+                        <td>{{docente}}</td>
+                        <td class="text-center">{{{url_count}}}</td>
+                        <td class="text-center">{{{etiqueta_count}}}</td>
+                        <td class="text-center">{{{tarea_count}}}</td>
+                        <td class="text-center">{{{foros_count}}}</td>
+                        <td class="text-center">{{{archivos_count}}}</td>
+                        <td class="text-center">{{{teams_count}}}</td>
+                        <td class="text-center">{{{folder_count}}}</td>
+                        <td class="text-center text-success"><strong>{{{recursos_compartidos}}}</strong></td>
+                        <td class="text-center">{{{alumnos_count}}}</td>
+                        <td class="text-center text-info"><strong>{{tiempo_conexion}}</strong></td>
+                        <td class="text-center text-primary"><strong>{{tiempo_creacion}}</strong></td>
+                        <td class="text-center">
+                            <a href="reports.php?courseid={{courseid}}&action=teacher&userid={{userid}}" class="btn btn-sm btn-info text-white" target="_blank" title="Ver Detalle"><i class="fa fa-eye"></i></a>
+                        </td>
+                    </tr>
+                    {{/results}}
+                    {{^results}}
+                    <tr>
+                        <td colspan="14" class="text-center">{{#str}}nodata, local_realtime_tracker{{/str}}</td>
+                    </tr>
+                    {{/results}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 text-center text-muted">
+    <small>desarrollado por Ing. Carlos Zevallos | PLUGIN MAURI|</small>
+</div>
+

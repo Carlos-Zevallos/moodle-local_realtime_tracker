@@ -1,0 +1,108 @@
+<div class="mauri-teacher-dashboard p-4 bg-white shadow-sm border rounded">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h3 class="text-primary"><i class="fa fa-line-chart"></i> Reporte Institucional: Desempeño Docente</h3>
+        <button class="btn btn-outline-secondary" onclick="window.print()"><i class="fa fa-download"></i> Descargar PDF</button>
+    </div>
+
+    <!-- Filter -->
+    <div class="card mb-4 bg-light">
+        <div class="card-body">
+            <form method="get" action="reports_teachers.php" class="form-inline">
+                <label class="mr-2 me-2"><strong>Facultad / Escuela:</strong></label>
+                <select id="categoryid" name="categoryid" class="form-control mr-3 me-3 custom-select">
+                    <option value="0">Todas las Facultades</option>
+                    {{#topcategories}}
+                        <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                    {{/topcategories}}
+                </select>
+
+                <label class="mr-2 me-2"><strong>Subcategoría:</strong></label>
+                <select id="subcategoryid" name="subcategoryid" class="form-control mr-3 me-3 custom-select">
+                    <option value="0">Todas</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var subcategories = {{{subcategories_json}}};
+        var categorySelect = document.getElementById('categoryid');
+        var subcategorySelect = document.getElementById('subcategoryid');
+        var selectedSubcategoryId = '{{subcategoryid}}';
+
+        function updateSubcategories() {
+            var parentId = categorySelect.value;
+            subcategorySelect.innerHTML = '<option value="0">Todas</option>';
+            if (parentId == 0) return;
+            
+            var filtered = subcategories.filter(function(sub) {
+                return sub.parent == parentId;
+            });
+            
+            filtered.forEach(function(sub) {
+                var option = document.createElement('option');
+                option.value = sub.id;
+                option.textContent = sub.name;
+                if (sub.id == selectedSubcategoryId) {
+                    option.selected = true;
+                }
+                subcategorySelect.appendChild(option);
+            });
+        }
+
+        categorySelect.addEventListener('change', function() {
+            selectedSubcategoryId = '0';
+            updateSubcategories();
+        });
+        
+        updateSubcategories();
+    });
+    </script>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4 text-center">
+        <div class="col-md-6">
+            <div class="card bg-primary text-white border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Tiempo Total Creando Cursos</h5>
+                    <h2 class="display-4">{{total_creation_hours}} h</h2>
+                    <small>Configurando Foros, Tareas, Archivos, URLs</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-info text-white border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Tiempo Total Usando IA</h5>
+                    <h2 class="display-4">{{total_ai_hours}} h</h2>
+                    <small>Asistencia de Inteligencia Artificial</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    {{{chart1}}}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    {{{chart2}}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 text-center text-muted">
+    <small>desarrollado por Ing. Carlos Zevallos | PLUGIN MAURI|</small>
+</div>
+
