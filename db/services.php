@@ -1,20 +1,36 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
- * Services definition for the local realtime tracker.
+ * External services for local_realtime_tracker.
  *
  * @package    local_realtime_tracker
- * @copyright  2026 Developer
+ * @copyright  2026 Carlos Zevallos
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
 
 $functions = [
     'local_realtime_tracker_ping' => [
         'classname' => 'local_realtime_tracker\external\ping',
         'methodname' => 'execute',
-        'classpath' => 'local/realtime_tracker/classes/external/ping.php',
-        'description' => 'Records active time spent by user on a course or activity page.',
+        'description' => 'Records active time spent by a user on a course or activity page.',
         'type' => 'write',
         'ajax' => true,
         'loginrequired' => true,
-    ]
+    ],
 ];

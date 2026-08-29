@@ -1,63 +1,77 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_realtime_tracker/dashboard
+
+    Course tracking dashboard.
+
+    Example context (json):
+    {
+        "courseid": 2,
+        "coursename": "Course name",
+        "centername": "Training centre",
+        "cif": "12345678Z",
+        "modalidad": "Distance learning",
+        "isstudent": true,
+        "studenturl": "/local/realtime_tracker/reports.php",
+        "users": [{"fullname": "Student", "email": "a@example.com", "detailurl": "#"}]
+    }
+}}
 <div class="mauri-dashboard-container p-4 bg-white shadow-sm border rounded">
     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
         <h3 class="text-primary">{{#str}} generalreport, local_realtime_tracker {{/str}}</h3>
     </div>
-    
-    <!-- Meta Header based on Image 1 -->
+
     <div class="row mb-4 text-muted small">
         <div class="col-md-4">
-            <strong>CENTRO DE FORMACION:</strong> {{centername}}<br>
-            <strong>Nº EXPEDIENTE:</strong> 3429909u90<br>
-            <strong>DENOMINACIÓN AAFF:</strong> {{coursename}}
+            <strong>{{#str}} trainingcentre, local_realtime_tracker {{/str}}:</strong> {{centername}}<br>
+            <strong>{{#str}} actionname, local_realtime_tracker {{/str}}:</strong> {{coursename}}
         </div>
         <div class="col-md-4">
-            <strong>Nº CIF:</strong> {{cif}}<br>
-            <strong>ACCESO:</strong> Grupo de empresa<br>
-            <strong>MODALIDAD:</strong> {{modalidad}}
+            <strong>{{#str}} cifnumber, local_realtime_tracker {{/str}}:</strong> {{cif}}<br>
+            <strong>{{#str}} accesslabel, local_realtime_tracker {{/str}}:</strong> {{#str}} companygroup, local_realtime_tracker {{/str}}<br>
+            <strong>{{#str}} modality, local_realtime_tracker {{/str}}:</strong> {{modalidad}}
         </div>
     </div>
 
-    <!-- Role Filter -->
     <div class="mb-4">
         <ul class="nav nav-pills">
             <li class="nav-item">
-                <a class="nav-link {{#rolefilter}}student{{/rolefilter}}" href="reports.php?courseid={{courseid}}&action=general&role=student">Estudiantes</a>
+                <a class="nav-link {{#isstudent}}active{{/isstudent}}" href="{{studenturl}}">{{#str}} students, local_realtime_tracker {{/str}}</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{#rolefilter}}teacher{{/rolefilter}}" href="reports.php?courseid={{courseid}}&action=general&role=teacher">Docentes</a>
+                <a class="nav-link {{#isteacher}}active{{/isteacher}}" href="{{teacherurl}}">{{#str}} teachers, local_realtime_tracker {{/str}}</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{#rolefilter}}all{{/rolefilter}}" href="reports.php?courseid={{courseid}}&action=general&role=all">Todos</a>
+                <a class="nav-link {{#isall}}active{{/isall}}" href="{{allurl}}">{{#str}} allusers, local_realtime_tracker {{/str}}</a>
             </li>
         </ul>
     </div>
-    
-    <!-- Script to set active pill -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var role = '{{rolefilter}}';
-            var links = document.querySelectorAll('.nav-pills .nav-link');
-            links.forEach(function(link) {
-                if (link.href.indexOf('role=' + role) !== -1) {
-                    link.classList.add('active');
-                } else {
-                    link.classList.remove('student', 'teacher', 'all'); // remove mustache literal
-                }
-            });
-        });
-    </script>
 
-    <!-- Table -->
     <div class="table-responsive">
         <table class="table table-striped table-hover align-middle">
             <thead class="table-dark">
                 <tr>
-                    <th style="color: white;">{{#str}} student, local_realtime_tracker {{/str}}</th>
-                    <th style="color: white;">{{#str}} firstaccess, local_realtime_tracker {{/str}}</th>
-                    <th style="color: white;">{{#str}} lastaccess, local_realtime_tracker {{/str}}</th>
-                    <th style="color: white;">{{#str}} totalaccesses, local_realtime_tracker {{/str}}</th>
-                    <th style="color: white;">{{#str}} activetime, local_realtime_tracker {{/str}}</th>
-                    <th style="color: white;">Acción</th>
+                    <th>{{#str}} student, local_realtime_tracker {{/str}}</th>
+                    <th>{{#str}} firstaccess, local_realtime_tracker {{/str}}</th>
+                    <th>{{#str}} lastaccess, local_realtime_tracker {{/str}}</th>
+                    <th>{{#str}} totalaccesses, local_realtime_tracker {{/str}}</th>
+                    <th>{{#str}} activetime, local_realtime_tracker {{/str}}</th>
+                    <th>{{#str}} action, local_realtime_tracker {{/str}}</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,12 +86,12 @@
                     <td>{{accesses}}</td>
                     <td><span class="badge badge-primary bg-primary">{{activetime}}</span></td>
                     <td>
-                        <a href="reports.php?courseid={{courseid}}&action={{usertype}}&userid={{userid}}" class="btn btn-sm btn-info text-white">Ver ></a>
+                        <a href="{{detailurl}}" class="btn btn-sm btn-info text-white">{{#str}} viewdetail, local_realtime_tracker {{/str}}</a>
                     </td>
                 </tr>
                 {{/users}}
                 {{^users}}
-                <tr><td colspan="6" class="text-center">No hay datos registrados.</td></tr>
+                <tr><td colspan="6" class="text-center">{{#str}} norecords, local_realtime_tracker {{/str}}</td></tr>
                 {{/users}}
             </tbody>
         </table>
@@ -85,6 +99,5 @@
 </div>
 
 <div class="mt-4 text-center text-muted">
-    <small>desarrollado por Ing. Carlos Zevallos | PLUGIN MAURI|</small>
+    <small>{{#str}} footercredit, local_realtime_tracker {{/str}}</small>
 </div>
-

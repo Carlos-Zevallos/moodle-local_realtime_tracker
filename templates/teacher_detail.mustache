@@ -1,12 +1,41 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_realtime_tracker/teacher_detail
+
+    Teacher activity detail report.
+
+    Example context (json):
+    {
+        "teachername": "Teacher Name",
+        "teacheremail": "teacher@example.com",
+        "total_lms_time": "2h 15m",
+        "activities": [{"name": "Forum", "type": "forum", "entries": 4, "connection_time": "1h 0m", "creation_time": "0h 20m", "ai_time": "0h 5m"}]
+    }
+}}
 <div class="mauri-student-detail p-4 bg-white shadow-sm border rounded">
     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-        <h3 class="text-primary"><i class="fa fa-line-chart"></i> Análisis de Tiempo del Docente</h3>
+        <h3 class="text-primary"><i class="fa fa-line-chart"></i> {{#str}} teacheranalysis, local_realtime_tracker {{/str}}</h3>
     </div>
 
     <div class="alert alert-info d-flex align-items-center">
         <div class="mr-3 me-3" style="font-size: 2rem;"><i class="fa fa-user-circle"></i></div>
         <div>
-            <strong>Docente:</strong> {{teachername}}<br>
+            <strong>{{#str}} teacher, local_realtime_tracker {{/str}}:</strong> {{teachername}}<br>
             <small>{{teacheremail}}</small>
         </div>
     </div>
@@ -15,7 +44,7 @@
         <div class="col-md-4">
             <div class="card bg-light border-0">
                 <div class="card-body">
-                    <h6 class="text-muted">Primer Acceso</h6>
+                    <h6 class="text-muted">{{#str}} firstaccess, local_realtime_tracker {{/str}}</h6>
                     <strong>{{firstaccess}}</strong>
                 </div>
             </div>
@@ -23,7 +52,7 @@
         <div class="col-md-4">
             <div class="card bg-light border-0">
                 <div class="card-body">
-                    <h6 class="text-muted">Último Acceso</h6>
+                    <h6 class="text-muted">{{#str}} lastaccess, local_realtime_tracker {{/str}}</h6>
                     <strong>{{lastaccess}}</strong>
                 </div>
             </div>
@@ -31,24 +60,24 @@
         <div class="col-md-4">
             <div class="card bg-primary text-white border-0">
                 <div class="card-body">
-                    <h6 class="text-white-50">Tiempo Total en LMS</h6>
+                    <h6 class="text-white-50">{{#str}} totallmstime, local_realtime_tracker {{/str}}</h6>
                     <strong>{{total_lms_time}}</strong>
                 </div>
             </div>
         </div>
     </div>
 
-    <h4 class="mb-3">Tiempo de Conexión y Creación por Recurso</h4>
+    <h4 class="mb-3">{{#str}} connectionandcreation, local_realtime_tracker {{/str}}</h4>
     <div class="table-responsive">
         <table class="table table-bordered table-sm table-hover">
             <thead class="bg-dark text-white">
                 <tr>
-                    <th style="color: white;">{{#str}} activity, local_realtime_tracker {{/str}}</th>
-                    <th style="color: white;">{{#str}} type, local_realtime_tracker {{/str}}</th>
-                    <th style="color: white;">Accesos</th>
-                    <th style="color: white;">Tiempo Navegando</th>
-                    <th style="color: white;">Tiempo Creando/Editando</th>
-                    <th style="color: white;">Tiempo Usando IA</th>
+                    <th>{{#str}} activity, local_realtime_tracker {{/str}}</th>
+                    <th>{{#str}} type, local_realtime_tracker {{/str}}</th>
+                    <th>{{#str}} accesses, local_realtime_tracker {{/str}}</th>
+                    <th>{{#str}} timebrowsing, local_realtime_tracker {{/str}}</th>
+                    <th>{{#str}} timecreating, local_realtime_tracker {{/str}}</th>
+                    <th>{{#str}} timeai, local_realtime_tracker {{/str}}</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,11 +88,11 @@
                     <td class="text-center">{{entries}}</td>
                     <td class="text-center"><strong>{{connection_time}}</strong></td>
                     <td class="text-center text-primary"><strong>{{creation_time}}</strong></td>
-                    <td class="text-center text-info"><strong>{{{ai_time}}}</strong></td>
+                    <td class="text-center text-info"><strong>{{ai_time}}</strong></td>
                 </tr>
                 {{/activities}}
                 {{^activities}}
-                <tr><td colspan="6" class="text-center">No hay registros de actividades para este docente.</td></tr>
+                <tr><td colspan="6" class="text-center">{{#str}} noactivityrecords_teacher, local_realtime_tracker {{/str}}</td></tr>
                 {{/activities}}
             </tbody>
         </table>
@@ -71,6 +100,5 @@
 </div>
 
 <div class="mt-4 text-center text-muted">
-    <small>desarrollado por Ing. Carlos Zevallos | PLUGIN MAURI|</small>
+    <small>{{#str}} footercredit, local_realtime_tracker {{/str}}</small>
 </div>
-

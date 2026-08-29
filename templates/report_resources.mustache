@@ -1,11 +1,39 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_realtime_tracker/report_resources
+
+    Institutional resources report.
+
+    Example context (json):
+    {
+        "categoryid": 0,
+        "year": "2026",
+        "results": [{"categoryname": "School", "coursename": "Course", "teachername": "Teacher"}]
+    }
+}}
 <div class="mauri-dashboard">
     <div class="row mb-4">
         <div class="col-12">
             <form class="form-inline" method="get" action="{{currenturl}}">
                 <div class="form-group mr-3">
-                    <label for="categoryid" class="mr-2">{{#str}}category{{/str}}</label>
+                    <label for="categoryid" class="mr-2">{{#str}} category, local_realtime_tracker {{/str}}</label>
                     <select id="categoryid" name="categoryid" class="custom-select">
-                        <option value="0">Todas</option>
+                        <option value="0">{{#str}} all, local_realtime_tracker {{/str}}</option>
                         {{#topcategories}}
                             <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
                         {{/topcategories}}
@@ -13,136 +41,36 @@
                 </div>
 
                 <div class="form-group mr-3">
-                    <label for="subcategoryid" class="mr-2">Subcategoría</label>
+                    <label for="subcategoryid" class="mr-2">{{#str}} subcategory, local_realtime_tracker {{/str}}</label>
                     <select id="subcategoryid" name="subcategoryid" class="custom-select">
-                        <option value="0">Todas</option>
+                        <option value="0">{{#str}} all, local_realtime_tracker {{/str}}</option>
                     </select>
-                </div>
-                
-                <div class="form-group mr-3">
-                    <label for="year" class="mr-2">Año</label>
-                    <input type="number" id="year" name="year" class="form-control" style="width: 100px;" value="{{year}}" placeholder="ej. 2026">
                 </div>
 
                 <div class="form-group mr-3">
-                    <label for="semester" class="mr-2">Semestre</label>
+                    <label for="year" class="mr-2">{{#str}} year, local_realtime_tracker {{/str}}</label>
+                    <input type="number" id="year" name="year" class="form-control" value="{{year}}" placeholder="{{#str}} yearplaceholder, local_realtime_tracker {{/str}}">
+                </div>
+
+                <div class="form-group mr-3">
+                    <label for="semester" class="mr-2">{{#str}} semester, local_realtime_tracker {{/str}}</label>
                     <select id="semester" name="semester" class="custom-select">
-                        <option value="">Todos</option>
-                        <option value="01" {{#sem01}}selected{{/sem01}}>01 (Primero)</option>
-                        <option value="02" {{#sem02}}selected{{/sem02}}>02 (Segundo)</option>
+                        <option value="">{{#str}} allsemesters, local_realtime_tracker {{/str}}</option>
+                        <option value="01" {{#sem01}}selected{{/sem01}}>{{#str}} firstsemester, local_realtime_tracker {{/str}}</option>
+                        <option value="02" {{#sem02}}selected{{/sem02}}>{{#str}} secondsemester, local_realtime_tracker {{/str}}</option>
                     </select>
                 </div>
 
-                <button type="submit" class="btn btn-primary">{{#str}}filter{{/str}}</button>
+                <button type="submit" class="btn btn-primary">{{#str}} filter, local_realtime_tracker {{/str}}</button>
             </form>
         </div>
     </div>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var subcategories = {{{subcategories_json}}};
-        var categorySelect = document.getElementById('categoryid');
-        var subcategorySelect = document.getElementById('subcategoryid');
-        var selectedSubcategoryId = '{{subcategoryid}}';
-
-        function updateSubcategories() {
-            var parentId = categorySelect.value;
-            subcategorySelect.innerHTML = '<option value="0">Todas</option>';
-            if (parentId == 0) return;
-            
-            var filtered = subcategories.filter(function(sub) {
-                return sub.parent == parentId;
-            });
-            
-            filtered.forEach(function(sub) {
-                var option = document.createElement('option');
-                option.value = sub.id;
-                option.textContent = sub.name;
-                if (sub.id == selectedSubcategoryId) {
-                    option.selected = true;
-                }
-                subcategorySelect.appendChild(option);
-            });
-        }
-
-        categorySelect.addEventListener('change', function() {
-            selectedSubcategoryId = '0';
-            updateSubcategories();
-        });
-        
-        updateSubcategories();
-    });
-
-    function exportReport(format) {
-        var form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'export_resources.php';
-        
-        var params = {
-            'categoryid': '{{categoryid}}',
-            'subcategoryid': '{{subcategoryid}}',
-            'year': '{{year}}',
-            'semester': '{{semester}}',
-            'format': format
-        };
-        
-        // Try to get chart image
-        var canvas = document.querySelector('.card-body canvas');
-        if (canvas) {
-            params['chart_image'] = canvas.toDataURL('image/png');
-        }
-        
-        for (var key in params) {
-            if (params.hasOwnProperty(key)) {
-                var hiddenField = document.createElement('input');
-                hiddenField.type = 'hidden';
-                hiddenField.name = key;
-                hiddenField.value = params[key];
-                form.appendChild(hiddenField);
-            }
-        }
-        
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-    }
-
-    function emailReport() {
-        if (!confirm('¿Estás seguro de enviar los reportes personalizados a los correos de los docentes filtrados? Esto podría tardar unos momentos.')) {
-            return;
-        }
-        var form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'email_reports.php';
-        
-        var params = {
-            'categoryid': '{{categoryid}}',
-            'subcategoryid': '{{subcategoryid}}',
-            'year': '{{year}}',
-            'semester': '{{semester}}'
-        };
-        
-        for (var key in params) {
-            if (params.hasOwnProperty(key)) {
-                var hiddenField = document.createElement('input');
-                hiddenField.type = 'hidden';
-                hiddenField.name = key;
-                hiddenField.value = params[key];
-                form.appendChild(hiddenField);
-            }
-        }
-        
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-    }
-    </script>
 
     <div class="row mb-4">
         <div class="col-md-10 offset-md-1">
             <div class="card">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">Distribución Total de Recursos</h5>
+                    <h5 class="mb-0">{{#str}} resourcedistribution, local_realtime_tracker {{/str}}</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -153,8 +81,8 @@
                             <table class="table table-bordered table-sm">
                                 <thead class="thead-light">
                                     <tr>
-                                        <th>Recurso</th>
-                                        <th class="text-center">Total</th>
+                                        <th>{{#str}} resource, local_realtime_tracker {{/str}}</th>
+                                        <th class="text-center">{{#str}} total, local_realtime_tracker {{/str}}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -175,20 +103,20 @@
 
     <div class="card">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Resultados</h5>
+            <h5 class="mb-0">{{#str}} results, local_realtime_tracker {{/str}}</h5>
             <div class="d-flex align-items-center">
-                <button type="button" class="btn btn-info mr-2" onclick="emailReport();">
-                    <i class="fa fa-envelope"></i> Enviar a Docentes
+                <button type="button" class="btn btn-info mr-2" data-action="email-report">
+                    <i class="fa fa-envelope"></i> {{#str}} sendtoteachers, local_realtime_tracker {{/str}}
                 </button>
                 <div class="dropdown d-inline-block">
-                    <button class="btn btn-danger dropdown-toggle" type="button" id="exportResourcesDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-download"></i> Exportar
+                    <button class="btn btn-danger dropdown-toggle" type="button" id="exportResourcesDropdown" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-download"></i> {{#str}} export, local_realtime_tracker {{/str}}
                     </button>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="exportResourcesDropdown">
-                        <a class="dropdown-item" href="#" onclick="exportReport('pdf'); return false;"><i class="fa fa-file-pdf-o text-danger"></i> Exportar PDF</a>
-                        <a class="dropdown-item" href="#" onclick="exportReport('doc'); return false;"><i class="fa fa-file-word-o text-primary"></i> Exportar DOC</a>
-                        <a class="dropdown-item" href="#" onclick="exportReport('xlsx'); return false;"><i class="fa fa-file-excel-o text-success"></i> Exportar Excel</a>
-                        <a class="dropdown-item" href="#" onclick="exportReport('xml'); return false;"><i class="fa fa-file-code-o text-warning"></i> Exportar XML</a>
+                        <a class="dropdown-item" href="#" data-action="export-report" data-format="pdf"><i class="fa fa-file-pdf-o text-danger"></i> {{#str}} exportpdf, local_realtime_tracker {{/str}}</a>
+                        <a class="dropdown-item" href="#" data-action="export-report" data-format="doc"><i class="fa fa-file-word-o text-primary"></i> {{#str}} exportdoc, local_realtime_tracker {{/str}}</a>
+                        <a class="dropdown-item" href="#" data-action="export-report" data-format="xlsx"><i class="fa fa-file-excel-o text-success"></i> {{#str}} exportexcel, local_realtime_tracker {{/str}}</a>
+                        <a class="dropdown-item" href="#" data-action="export-report" data-format="xml"><i class="fa fa-file-code-o text-warning"></i> {{#str}} exportxml, local_realtime_tracker {{/str}}</a>
                     </div>
                 </div>
             </div>
@@ -197,48 +125,48 @@
             <table class="table table-bordered table-hover">
                 <thead class="thead-light">
                     <tr>
-                        <th>{{#str}}school, local_realtime_tracker{{/str}}</th>
-                        <th>{{#str}}courses, local_realtime_tracker{{/str}}</th>
-                        <th>{{#str}}teacher, local_realtime_tracker{{/str}}</th>
-                        <th class="text-center">URL</th>
-                        <th class="text-center">Etiqueta</th>
-                        <th class="text-center">Tarea</th>
-                        <th class="text-center">Foros</th>
-                        <th class="text-center">Archivos</th>
-                        <th class="text-center">Teams</th>
-                        <th class="text-center">Folder</th>
-                        <th class="text-center">Recursos Compartidos</th>
-                        <th class="text-center">{{#str}}students, local_realtime_tracker{{/str}}</th>
-                        <th class="text-center">T. Conexión</th>
-                        <th class="text-center">T. Creación</th>
-                        <th class="text-center">Acción</th>
+                        <th>{{#str}} school, local_realtime_tracker {{/str}}</th>
+                        <th>{{#str}} courses, local_realtime_tracker {{/str}}</th>
+                        <th>{{#str}} teacher, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} url, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} label, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} assignment, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} forums, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} files, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} teams, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} folder, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} sharedresources, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} students, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} connectiontime, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} creationtime, local_realtime_tracker {{/str}}</th>
+                        <th class="text-center">{{#str}} action, local_realtime_tracker {{/str}}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {{#results}}
                     <tr>
-                        <td>{{escuela}}</td>
-                        <td>{{cursos}}<br><small>{{{link_curso}}}</small></td>
-                        <td>{{docente}}</td>
-                        <td class="text-center">{{{url_count}}}</td>
-                        <td class="text-center">{{{etiqueta_count}}}</td>
-                        <td class="text-center">{{{tarea_count}}}</td>
-                        <td class="text-center">{{{foros_count}}}</td>
-                        <td class="text-center">{{{archivos_count}}}</td>
-                        <td class="text-center">{{{teams_count}}}</td>
-                        <td class="text-center">{{{folder_count}}}</td>
-                        <td class="text-center text-success"><strong>{{{recursos_compartidos}}}</strong></td>
-                        <td class="text-center">{{{alumnos_count}}}</td>
-                        <td class="text-center text-info"><strong>{{tiempo_conexion}}</strong></td>
-                        <td class="text-center text-primary"><strong>{{tiempo_creacion}}</strong></td>
+                        <td>{{categoryname}}</td>
+                        <td>{{coursename}}<br><small><a href="{{courseurl}}" target="_blank">{{shortname}}</a></small></td>
+                        <td>{{teachername}}</td>
+                        <td class="text-center {{#url_iszero}}text-danger font-weight-bold{{/url_iszero}}">{{url_count}}</td>
+                        <td class="text-center {{#label_iszero}}text-danger font-weight-bold{{/label_iszero}}">{{label_count}}</td>
+                        <td class="text-center {{#assign_iszero}}text-danger font-weight-bold{{/assign_iszero}}">{{assign_count}}</td>
+                        <td class="text-center {{#forum_iszero}}text-danger font-weight-bold{{/forum_iszero}}">{{forum_count}}</td>
+                        <td class="text-center {{#file_iszero}}text-danger font-weight-bold{{/file_iszero}}">{{file_count}}</td>
+                        <td class="text-center {{#teams_iszero}}text-danger font-weight-bold{{/teams_iszero}}">{{teams_count}}</td>
+                        <td class="text-center {{#folder_iszero}}text-danger font-weight-bold{{/folder_iszero}}">{{folder_count}}</td>
+                        <td class="text-center text-success {{#shared_iszero}}text-danger font-weight-bold{{/shared_iszero}}"><strong>{{shared_count}}</strong></td>
+                        <td class="text-center {{#student_iszero}}text-danger font-weight-bold{{/student_iszero}}">{{student_count}}</td>
+                        <td class="text-center text-info"><strong>{{connectiontime}}</strong></td>
+                        <td class="text-center text-primary"><strong>{{creationtime}}</strong></td>
                         <td class="text-center">
-                            <a href="reports.php?courseid={{courseid}}&action=teacher&userid={{userid}}" class="btn btn-sm btn-info text-white" target="_blank" title="Ver Detalle"><i class="fa fa-eye"></i></a>
+                            <a href="{{detailurl}}" class="btn btn-sm btn-info text-white" target="_blank" title="{{#str}} viewdetail, local_realtime_tracker {{/str}}"><i class="fa fa-eye"></i></a>
                         </td>
                     </tr>
                     {{/results}}
                     {{^results}}
                     <tr>
-                        <td colspan="14" class="text-center">{{#str}}nodata, local_realtime_tracker{{/str}}</td>
+                        <td colspan="15" class="text-center">{{#str}} nodata, local_realtime_tracker {{/str}}</td>
                     </tr>
                     {{/results}}
                 </tbody>
@@ -248,6 +176,5 @@
 </div>
 
 <div class="mt-4 text-center text-muted">
-    <small>desarrollado por Ing. Carlos Zevallos | PLUGIN MAURI|</small>
+    <small>{{#str}} footercredit, local_realtime_tracker {{/str}}</small>
 </div>
-

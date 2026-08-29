@@ -1,14 +1,43 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_realtime_tracker/student_detail
+
+    Student activity detail report.
+
+    Example context (json):
+    {
+        "studentname": "Student Name",
+        "studentemail": "student@example.com",
+        "pdfurl": "#",
+        "activities": [{"name": "Forum", "type": "forum", "entries": 3, "time": "1h 0m", "status": "Completed"}]
+    }
+}}
 <div class="mauri-student-detail p-4 bg-white shadow-sm border rounded">
     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
         <h3 class="text-primary">{{#str}} studentreport, local_realtime_tracker {{/str}}</h3>
         <div class="dropdown">
-            <button class="btn btn-danger dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fa fa-download"></i> Exportar
+            <button class="btn btn-danger dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa fa-download"></i> {{#str}} export, local_realtime_tracker {{/str}}
             </button>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="exportDropdown">
-                <a class="dropdown-item" href="export.php?courseid={{courseid}}&userid={{userid}}&format=pdf"><i class="fa fa-file-pdf-o text-danger"></i> Exportar PDF</a>
-                <a class="dropdown-item" href="export.php?courseid={{courseid}}&userid={{userid}}&format=doc"><i class="fa fa-file-word-o text-primary"></i> Exportar DOC</a>
-                <a class="dropdown-item" href="export.php?courseid={{courseid}}&userid={{userid}}&format=xml"><i class="fa fa-file-code-o text-warning"></i> Exportar XML</a>
+                <a class="dropdown-item" href="{{pdfurl}}"><i class="fa fa-file-pdf-o text-danger"></i> {{#str}} exportpdf, local_realtime_tracker {{/str}}</a>
+                <a class="dropdown-item" href="{{docurl}}"><i class="fa fa-file-word-o text-primary"></i> {{#str}} exportdoc, local_realtime_tracker {{/str}}</a>
+                <a class="dropdown-item" href="{{xmlurl}}"><i class="fa fa-file-code-o text-warning"></i> {{#str}} exportxml, local_realtime_tracker {{/str}}</a>
             </div>
         </div>
     </div>
@@ -40,7 +69,7 @@
         </div>
     </div>
 
-    <h4 class="mb-3">Seguimiento Total por Actividad</h4>
+    <h4 class="mb-3">{{#str}} activitytracking, local_realtime_tracker {{/str}}</h4>
     <div class="table-responsive">
         <table class="table table-bordered table-sm">
             <thead class="bg-primary text-white">
@@ -63,7 +92,7 @@
                 </tr>
                 {{/activities}}
                 {{^activities}}
-                <tr><td colspan="5" class="text-center">No hay registros de actividades.</td></tr>
+                <tr><td colspan="5" class="text-center">{{#str}} noactivityrecords, local_realtime_tracker {{/str}}</td></tr>
                 {{/activities}}
             </tbody>
         </table>
@@ -71,6 +100,5 @@
 </div>
 
 <div class="mt-4 text-center text-muted">
-    <small>desarrollado por Ing. Carlos Zevallos | PLUGIN MAURI|</small>
+    <small>{{#str}} footercredit, local_realtime_tracker {{/str}}</small>
 </div>
-

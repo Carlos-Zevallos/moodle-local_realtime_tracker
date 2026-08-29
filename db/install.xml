@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/realtime_tracker/db" VERSION="20260723" COMMENT="XMLDB file for Moodle local_realtime_tracker"
+<XMLDB PATH="local/realtime_tracker/db" VERSION="20260828" COMMENT="XMLDB file for Moodle local_realtime_tracker"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -22,9 +22,10 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="course_user_cm_idx" UNIQUE="false" FIELDS="courseid, userid, cmid"/>
+        <INDEX NAME="userid_idx" UNIQUE="false" FIELDS="userid"/>
       </INDEXES>
     </TABLE>
-    
+
     <TABLE NAME="local_realtime_tracker_summ" COMMENT="Course-level Summary table for reporting.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
@@ -39,6 +40,9 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="courseuser" TYPE="unique" FIELDS="courseid, userid"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="userid_idx" UNIQUE="false" FIELDS="userid"/>
+      </INDEXES>
     </TABLE>
 
     <TABLE NAME="local_realtime_tracker_acts" COMMENT="Activity-level Summary table (Mauri Drilldown).">
@@ -56,6 +60,9 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="courseusercm" TYPE="unique" FIELDS="courseid, userid, cmid"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="userid_idx" UNIQUE="false" FIELDS="userid"/>
+      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>
