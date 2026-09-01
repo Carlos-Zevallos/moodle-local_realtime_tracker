@@ -69,7 +69,8 @@ foreach ($usersdata as $userid => $userrecords) {
         continue;
     }
     $recipient = $users[$userid];
-    $subject = get_string('emailsubject', 'local_realtime_tracker', format_string($SITE->fullname));
+    $site = get_site();
+    $subject = get_string('emailsubject', 'local_realtime_tracker', format_string($site->fullname));
 
     $pdf = new pdf();
     $pdf->setPrintHeader(false);
@@ -120,7 +121,8 @@ foreach ($usersdata as $userid => $userrecords) {
     }
 
     $tempdir = make_temp_directory('local_realtime_tracker_emails');
-    $attachmentname = get_string('emailattachment', 'local_realtime_tracker', $recipient->username);
+    // Ensure the attachment name has the .pdf extension
+    $attachmentname = get_string('emailattachment', 'local_realtime_tracker', $recipient->username) . '.pdf';
     $filepath = $tempdir . '/' . $attachmentname;
     $pdf->Output($filepath, 'F');
 
