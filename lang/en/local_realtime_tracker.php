@@ -50,8 +50,8 @@ $string['maurireports'] = 'Mauri reports';
 $string['generalreport'] = 'Mauri general report';
 $string['studentreport'] = 'Individual communication record';
 $string['student'] = 'Student';
-$string['students'] = 'Students';
-$string['teacher'] = 'Teacher';
+$string['students'] = 'Estudiantes';
+$string['teacher'] = 'Docente';
 $string['teachers'] = 'Teachers';
 $string['allusers'] = 'All';
 $string['activetime'] = 'Active time';
@@ -118,8 +118,8 @@ $string['aiusage'] = 'AI usage';
 $string['category'] = 'Category';
 $string['allcategories'] = 'All categories';
 $string['resources'] = 'Resources';
-$string['school'] = 'School';
-$string['courses'] = 'Courses';
+$string['school'] = 'Escuela';
+$string['courses'] = 'Cursos';
 $string['year'] = 'Year';
 $string['semester'] = 'Semester';
 $string['allsemesters'] = 'All';
@@ -133,15 +133,15 @@ $string['results'] = 'Results';
 $string['sendtoteachers'] = 'Email teachers';
 $string['emailconfirm'] = 'Are you sure you want to send personalised reports to the filtered teachers? This may take a few moments.';
 $string['url'] = 'URL';
-$string['label'] = 'Label';
-$string['assignment'] = 'Assignment';
-$string['forums'] = 'Forums';
-$string['files'] = 'Files';
-$string['teams'] = 'Teams';
-$string['folder'] = 'Folder';
-$string['sharedresources'] = 'Shared resources';
-$string['connectiontime'] = 'Connection time';
-$string['creationtime'] = 'Creation time';
+$string['label'] = 'Etiqueta';
+$string['assignment'] = 'Tarea';
+$string['forums'] = 'Foros';
+$string['files'] = 'Archivos';
+$string['folder'] = 'Carpeta';
+$string['sharedresources'] = 'Recursos compartidos';
+$string['connectiontime'] = 'Tiempo de conexión';
+$string['creationtime'] = 'Tiempo de creación';
+$string['pdfnote'] = 'Nota: Se está considerando a los docentes que usan CARPETA en consideración de ARCHIVOS, en este sentido solo es cumplir uno de los dos (2) recursos.';
 $string['resourcetotals'] = 'Resource totals:';
 
 // Export.
@@ -150,23 +150,19 @@ $string['exportdoc'] = 'Export DOC';
 $string['exportxml'] = 'Export XML';
 $string['exportexcel'] = 'Export Excel';
 $string['pdfgeneralreport'] = 'Mauri general report: {$a}';
-$string['pdfresourcesreport'] = 'Mauri resources report';
+$string['pdfresourcesreport'] = 'Informe de uso de Recursos en Moodle';
 $string['pdfteacherresources'] = 'Teacher resources report';
 $string['exportfilename'] = 'Record_{$a->username}_{$a->date}';
 $string['resourcesfilename'] = 'Resources_report_{$a}';
 $string['cifnumber'] = 'CIF number';
 
 // Email.
-$string['emailsubject'] = 'Virtual classroom usage report - {$a}';
-$string['emailbody'] = 'Please find attached your virtual classroom usage report.
-
-Teachers with values shown in red are not currently meeting the expected use of those resources. Folder use may count towards file-resource requirements.
-
-Kind regards.';
-$string['emailsent'] = '{$a->sent} of {$a->total} emails were sent successfully.';
-$string['emailnone'] = 'No emails could be sent. Please check your Moodle SMTP configuration.';
-$string['emailempty'] = 'There is no data to send.';
-$string['emailattachment'] = 'Virtual_classroom_usage_{$a}.pdf';
+$string['emailsubject'] = 'Informe de uso del aula virtual - {$a}';
+$string['emailbody'] = 'Adjunto encontrará su informe de uso del aula virtual.<br><br>Los indicadores en rojo señalan un uso por debajo del estándar institucional para los recursos correspondientes. Para la evaluación del criterio de archivos, la inclusión de carpetas es contabilizada como un equivalente válido.<br><br>Saludos cordiales,<br><br><img src="{$a->firmaurl}" alt="Firma" style="max-width: 400px;"><br><br><div style="font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #4caf50; font-style: italic; margin-top: 15px;">No imprima este correo a menos que sea necesario. Ayudemos a proteger el medio ambiente ...</div>';
+$string['emailsent'] = '{$a->sent} of {$a->total} correos enviados exitosamente.';
+$string['emailnone'] = 'No se enviaron correos. Por favor revise su configuración SMTP de Moodle.';
+$string['emailempty'] = 'No hay datos para enviar.';
+$string['emailattachment'] = 'Informe_de_Uso_del_Aula_Virtual_{$a}.pdf';
 
 // Privacy metadata.
 $string['privacy:metadata:local_realtime_tracker_logs'] = 'Heartbeat logs of active time per user session, course and activity.';

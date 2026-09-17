@@ -208,7 +208,17 @@ class helper {
             'userid' => $userid,
         ], '', 'cmid, entries, active_seconds, create_seconds, ai_seconds');
 
-        $aitokens = self::get_datacurso_tokens_by_modname($userid);
+        $ai_consumptions = $DB->get_records('aiprovider_datacurso_consumption', ['userid' => $userid], '', 'id, externalid, credits');
+        $ai_by_cmid = [];
+        foreach ($ai_consumptions as $c) {
+            $extid = (int)$c->externalid;
+            if ($extid > 0) {
+                if (!isset($ai_by_cmid[$extid])) {
+                    $ai_by_cmid[$extid] = 0;
+                }
+                $ai_by_cmid[$extid] += (int)$c->credits;
+            }
+        }
 
         $modinfo = get_fast_modinfo($course);
         $activities = [];
@@ -219,11 +229,10 @@ class helper {
             $create = $act ? (int)$act->create_seconds : 0;
             $ai = $act ? (int)$act->ai_seconds : 0;
 
-            if (!empty($aitokens[$cm->modname])) {
-                $aiseconds = (int)$aitokens[$cm->modname] * 60;
+            if (isset($ai_by_cmid[$cm->id])) {
+                $aiseconds = $ai_by_cmid[$cm->id] * 60; // 1 credit = 1 minute
                 $active = max(0, $active - $aiseconds);
                 $ai += $aiseconds;
-                unset($aitokens[$cm->modname]);
             }
 
             $activities[] = [
@@ -246,30 +255,27 @@ class helper {
      * @return array<string,int>
      */
     public static function get_datacurso_tokens_by_modname(?int $userid = null): array {
-        if (!class_exists('\aiprovider_datacurso\local\service\consumption_service')) {
-            return [];
-        }
+        global $DB;
+        $usage = [];
 
         try {
-            $response = \aiprovider_datacurso\local\service\consumption_service::get_all_consumption(
-                null,
-                null,
-                $userid
-            );
+            if ($userid) {
+                $records = $DB->get_records('aiprovider_datacurso_consumption', ['userid' => $userid]);
+            } else {
+                $records = $DB->get_records('aiprovider_datacurso_consumption');
+            }
         } catch (\Exception $exception) {
-            debugging('Datacurso consumption lookup failed: ' . $exception->getMessage(), DEBUG_DEVELOPER);
             return [];
         }
 
-        if (empty($response['consumption'])) {
+        if (empty($records)) {
             return [];
         }
 
-        $usage = [];
-        foreach ($response['consumption'] as $item) {
-            $service = strtolower($item['id_service'] ?? '');
-            $actionname = strtolower($item['action'] ?? '');
-            $tokens = (int)($item['cant_tokens'] ?? 0);
+        foreach ($records as $item) {
+            $service = strtolower($item->service ?? '');
+            $actionname = strtolower($item->action ?? '');
+            $tokens = (int)($item->credits ?? 0);
             $modtype = 'unknown';
             if (strpos($service, 'forum') !== false || strpos($actionname, 'forum') !== false) {
                 $modtype = 'forum';
@@ -467,6 +473,13 @@ class helper {
             $summindex[$summary->courseid . '-' . $summary->userid] = (int)$summary->total_active_seconds;
         }
 
+        $accesses = $DB->get_records_sql(
+            "SELECT " . $DB->sql_concat('courseid', "'-'", 'userid') . " AS uniqueid, courseid, userid, timeaccess 
+               FROM {user_lastaccess} 
+              WHERE courseid $csql",
+            $cparams
+        );
+
         $creations = $DB->get_records_sql(
             "SELECT " . $DB->sql_concat('courseid', "'-'", 'userid') . " AS uniqueid,
                     courseid,
@@ -478,20 +491,86 @@ class helper {
             $cparams
         );
 
+        // BULK FETCH AI CREDITS - PHP Side mapping to avoid DB dialect JOIN exceptions (e.g. Postgres VARCHAR = BIGINT)
+        $ai_credits_by_course_user = [];
+        $ai_credits_total_by_user = []; // Fallback if externalid doesn't match cmid/courseid
+        $teachers_with_course_match = [];
+        
+        try {
+            $teacher_ids = array_filter(array_unique(array_map(function($r) { return $r->userid; }, $rows)));
+            if (!empty($teacher_ids)) {
+                list($usql, $uparams) = $DB->get_in_or_equal($teacher_ids);
+                $consumptions = $DB->get_records_select('aiprovider_datacurso_consumption', "userid $usql", $uparams, '', 'id, externalid, userid, credits');
+                
+                if (!empty($consumptions)) {
+                    $externalids = array_unique(array_map(function($c) { return $c->externalid; }, $consumptions));
+                    $course_records = [];
+                    
+                    $numeric_ext_ids = array_filter(array_map('intval', $externalids));
+                    if (!empty($numeric_ext_ids)) {
+                        list($esql, $eparams) = $DB->get_in_or_equal($numeric_ext_ids);
+                        // Safe to query since we are passing integers
+                        $course_records = $DB->get_records_select('course', "id $esql", $eparams, '', 'id');
+                    }
+                    
+                    foreach ($consumptions as $c) {
+                        $ext_id = (int)$c->externalid;
+                        $courseid = 0;
+                        
+                        if (!isset($ai_credits_total_by_user[$c->userid])) {
+                            $ai_credits_total_by_user[$c->userid] = 0;
+                        }
+                        $ai_credits_total_by_user[$c->userid] += (float)$c->credits;
+                        
+                        if (isset($course_records[$ext_id])) {
+                            $courseid = $course_records[$ext_id]->id;
+                        }
+                        
+                        if ($courseid > 0) {
+                            $teachers_with_course_match[$c->userid] = true;
+                            $unique_key = $courseid . '-' . $c->userid;
+                            if (!isset($ai_credits_by_course_user[$unique_key])) {
+                                $ai_credits_by_course_user[$unique_key] = 0;
+                            }
+                            $ai_credits_by_course_user[$unique_key] += (float)$c->credits;
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            error_log("AI Credits Mapping Error: " . $e->getMessage());
+        }
+
         $result = [];
         foreach ($rows as $row) {
             $key = $row->courseid . '-' . $row->userid;
+            $has_accessed = isset($accesses[$key]);
+            
             $mods = $modsbycourse[$row->courseid] ?? [];
-            $urlcount = $mods['url'] ?? 0;
-            $labelcount = $mods['label'] ?? 0;
-            $assigncount = ($mods['assign'] ?? 0) + ($mods['assignment'] ?? 0);
-            $forumcount = isset($forumcounts[$row->courseid]) ? (int)$forumcounts[$row->courseid]->cnt : 0;
-            $filecount = $mods['resource'] ?? 0;
-            $teamscount = $mods['msteams'] ?? 0;
-            $foldercount = $mods['folder'] ?? 0;
+            $urlcount = $has_accessed ? ($mods['url'] ?? 0) : 0;
+            $labelcount = $has_accessed ? ($mods['label'] ?? 0) : 0;
+            $assigncount = $has_accessed ? (($mods['assign'] ?? 0) + ($mods['assignment'] ?? 0)) : 0;
+            $forumcount = $has_accessed ? (isset($forumcounts[$row->courseid]) ? (int)$forumcounts[$row->courseid]->cnt : 0) : 0;
+            $filecount = $has_accessed ? ($mods['resource'] ?? 0) : 0;
+            $teamscount = $has_accessed ? ($mods['msteams'] ?? 0) : 0;
+            $foldercount = $has_accessed ? ($mods['folder'] ?? 0) : 0;
             $studentcount = isset($studentcounts[$row->courseid]) ? (int)$studentcounts[$row->courseid]->cnt : 0;
             $connection = $summindex[$key] ?? 0;
             $creation = isset($creations[$key]) ? (int)$creations[$key]->totalcreation : 0;
+
+            $teacher_id = (int)$row->userid;
+            $ai_credits = 0;
+            if ($teacher_id > 0) {
+                if (isset($teachers_with_course_match[$teacher_id])) {
+                    $unique_ai_key = $row->courseid . '-' . $teacher_id;
+                    $ai_credits = $ai_credits_by_course_user[$unique_ai_key] ?? 0;
+                } else {
+                    if (!isset($fallback_assigned[$teacher_id])) {
+                        $ai_credits = $ai_credits_total_by_user[$teacher_id] ?? 0;
+                        $fallback_assigned[$teacher_id] = true;
+                    }
+                }
+            }
 
             $result[] = (object)[
                 'courseid' => $row->courseid,
@@ -511,6 +590,8 @@ class helper {
                 'student_count' => $studentcount,
                 'total_connection' => $connection,
                 'total_creation' => $creation,
+                'has_accessed' => $has_accessed,
+                'ai_credits' => $ai_credits,
             ];
         }
 

@@ -1,180 +1,774 @@
 {{!
-    This file is part of Moodle - http://moodle.org/
-
-    Moodle is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Moodle is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-}}
-{{!
     @template local_realtime_tracker/report_resources
 
-    Institutional resources report.
-
-    Example context (json):
-    {
-        "categoryid": 0,
-        "year": "2026",
-        "results": [{"categoryname": "School", "coursename": "Course", "teachername": "Teacher"}]
-    }
+    Institutional resources report dark dashboard.
 }}
-<div class="mauri-dashboard">
-    <div class="row mb-4">
-        <div class="col-12">
-            <form class="form-inline" method="get" action="{{currenturl}}">
-                <div class="form-group mr-3">
-                    <label for="categoryid" class="mr-2">{{#str}} category, local_realtime_tracker {{/str}}</label>
-                    <select id="categoryid" name="categoryid" class="custom-select">
-                        <option value="0">{{#str}} all, local_realtime_tracker {{/str}}</option>
-                        {{#topcategories}}
-                            <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
-                        {{/topcategories}}
-                    </select>
-                </div>
+<div class="tracker-dark-dashboard">
+    <style>
+        .tracker-dark-dashboard {
+            background-color: #121826;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .tracker-dark-dashboard * {
+            box-sizing: border-box;
+        }
+        .tracker-dark-dashboard h3, .tracker-dark-dashboard h5 {
+            color: #ffffff;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .tracker-dark-dashboard .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .tracker-dark-dashboard .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 0;
+        }
+        .tracker-dark-dashboard .form-group label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+        .tracker-dark-dashboard .custom-select, .tracker-dark-dashboard .form-control {
+            background-color: #1e293b;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 8px 12px;
+            height: auto;
+        }
+        .tracker-dark-dashboard .btn-primary {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .tracker-dark-dashboard .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .tracker-dark-dashboard .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .tracker-dark-dashboard .stat-card {
+            background-color: #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 1px solid #334155;
+            position: relative;
+            overflow: hidden;
+        }
+        .tracker-dark-dashboard .stat-card .stat-title {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        .tracker-dark-dashboard .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .tracker-dark-dashboard .stat-card .icon-bg {
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 4rem;
+            opacity: 0.05;
+        }
+        
+        .tracker-dark-dashboard .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        @media (max-width: 992px) {
+            .tracker-dark-dashboard .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .tracker-dark-dashboard .panel-card {
+            background-color: #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #334155;
+            margin-bottom: 25px;
+        }
+        
+        .tracker-dark-dashboard .top-lists-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        @media (max-width: 1200px) {
+            .tracker-dark-dashboard .top-lists-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            .tracker-dark-dashboard .top-lists-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .tracker-dark-dashboard .list-container {
+            max-height: 230px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .tracker-dark-dashboard .list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .tracker-dark-dashboard .list-container::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        .tracker-dark-dashboard .list-container::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 3px;
+        }
+        .tracker-dark-dashboard .list-container::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+        
+        .tracker-dark-dashboard .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #334155;
+            font-size: 0.85rem;
+        }
+        .tracker-dark-dashboard .list-item:last-child {
+            border-bottom: none;
+        }
+        .tracker-dark-dashboard .list-item .rank {
+            background-color: #334155;
+            color: #cbd5e1;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .tracker-dark-dashboard .list-item .rank.gold { background-color: #eab308; color: #fff; }
+        .tracker-dark-dashboard .list-item .rank.silver { background-color: #94a3b8; color: #fff; }
+        .tracker-dark-dashboard .list-item .rank.bronze { background-color: #b45309; color: #fff; }
+        .tracker-dark-dashboard .list-item .name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 600;
+        }
+        .tracker-dark-dashboard .list-item .name small {
+            display: block;
+            color: #94a3b8;
+            font-weight: normal;
+        }
+        .tracker-dark-dashboard .list-item .value {
+            font-weight: bold;
+            color: #38bdf8;
+            margin-left: 10px;
+        }
+        .tracker-dark-dashboard .list-item .value.danger { color: #ef4444; }
+        .tracker-dark-dashboard .list-item .value.pink { color: #f472b6; }
+        
+        .tracker-dark-dashboard .badge-danger-custom {
+            background-color: #ef4444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            float: right;
+        }
 
-                <div class="form-group mr-3">
-                    <label for="subcategoryid" class="mr-2">{{#str}} subcategory, local_realtime_tracker {{/str}}</label>
-                    <select id="subcategoryid" name="subcategoryid" class="custom-select">
-                        <option value="0">{{#str}} all, local_realtime_tracker {{/str}}</option>
-                    </select>
-                </div>
+        .tracker-dark-dashboard .table-responsive {
+            overflow-x: auto;
+        }
+        .tracker-dark-dashboard table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            background-color: transparent !important;
+        }
+        .tracker-dark-dashboard tr {
+            background-color: #1e293b !important;
+        }
+        .tracker-dark-dashboard tr:nth-child(even) {
+            background-color: #0f172a !important;
+        }
+        .tracker-dark-dashboard th {
+            background-color: #0f172a !important;
+            color: #94a3b8 !important;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #334155 !important;
+            white-space: nowrap;
+        }
+        .tracker-dark-dashboard th.text-center { text-align: center !important; }
+        .tracker-dark-dashboard td {
+            padding: 12px;
+            border-bottom: 1px solid #334155 !important;
+            color: #cbd5e1 !important;
+            vertical-align: middle;
+            background-color: transparent !important;
+        }
+        .tracker-dark-dashboard tr:hover td {
+            background-color: #334155 !important;
+        }
+        .tracker-dark-dashboard .text-danger { color: #ef4444 !important; }
+        .tracker-dark-dashboard .text-success { color: #10b981 !important; }
+        .tracker-dark-dashboard .text-info { color: #38bdf8 !important; }
+        .tracker-dark-dashboard .text-pink { color: #f472b6 !important; }
+        .tracker-dark-dashboard .text-amber { color: #f59e0b !important; font-weight: bold; }
+        .tracker-dark-dashboard .text-green { color: #10b981 !important; font-weight: bold; }
+        
+        .tracker-dark-dashboard .badge-excellent {
+            background-color: #047857;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin-top: 4px;
+        }
+        
+        .tracker-dark-dashboard .badge-congrats {
+            background-color: #d97706;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin-top: 4px;
+        }
+        
+        .tracker-dark-dashboard .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-top: 1px solid #334155;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+        
+        .tracker-dark-dashboard .pagination-buttons button {
+            background-color: transparent;
+            border: none;
+            color: #cbd5e1;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .tracker-dark-dashboard .pagination-buttons button:hover {
+            color: #fff;
+        }
+        .tracker-dark-dashboard .pagination-buttons button:disabled {
+            color: #475569;
+            cursor: not-allowed;
+        }
+        
+        .tracker-dark-dashboard .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .tracker-dark-dashboard .btn-export {
+            background-color: transparent;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .tracker-dark-dashboard .btn-export:hover {
+            background-color: #334155;
+            color: #fff;
+        }
 
-                <div class="form-group mr-3">
-                    <label for="year" class="mr-2">{{#str}} year, local_realtime_tracker {{/str}}</label>
-                    <input type="number" id="year" name="year" class="form-control" value="{{year}}" placeholder="{{#str}} yearplaceholder, local_realtime_tracker {{/str}}">
-                </div>
+        /* LIGHT MODE OVERRIDES */
+        .tracker-dark-dashboard.light-mode {
+            background-color: #f8fafc;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+        }
+        .tracker-dark-dashboard.light-mode h3, 
+        .tracker-dark-dashboard.light-mode h5 {
+            color: #0f172a;
+        }
+        .tracker-dark-dashboard.light-mode .panel-card,
+        .tracker-dark-dashboard.light-mode .stat-card {
+            background-color: #ffffff;
+            border-color: #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .tracker-dark-dashboard.light-mode .stat-card .stat-title {
+            color: #64748b;
+        }
+        .tracker-dark-dashboard.light-mode .stat-card .stat-value {
+            color: #0f172a;
+        }
+        .tracker-dark-dashboard.light-mode .custom-select, 
+        .tracker-dark-dashboard.light-mode .form-control {
+            background-color: #ffffff;
+            color: #334155;
+            border-color: #cbd5e1;
+        }
+        .tracker-dark-dashboard.light-mode tr {
+            background-color: #ffffff !important;
+        }
+        .tracker-dark-dashboard.light-mode tr:nth-child(even) {
+            background-color: #f8fafc !important;
+        }
+        .tracker-dark-dashboard.light-mode th {
+            background-color: #f1f5f9 !important;
+            color: #475569 !important;
+            border-bottom-color: #cbd5e1 !important;
+        }
+        .tracker-dark-dashboard.light-mode td {
+            color: #334155 !important;
+            border-bottom-color: #e2e8f0 !important;
+        }
+        .tracker-dark-dashboard.light-mode tr:hover td {
+            background-color: #f1f5f9 !important;
+        }
+        .tracker-dark-dashboard.light-mode .list-item {
+            border-bottom-color: #e2e8f0;
+            color: #334155;
+        }
+        .tracker-dark-dashboard.light-mode .list-item .name small {
+            color: #64748b;
+        }
+        .tracker-dark-dashboard.light-mode .list-container::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        .tracker-dark-dashboard.light-mode .list-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+        }
+        .tracker-dark-dashboard.light-mode .btn-export {
+            border-color: #cbd5e1;
+            color: #475569;
+        }
+        .tracker-dark-dashboard.light-mode .btn-export:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+        .tracker-dark-dashboard.light-mode .pagination-controls {
+            border-top-color: #cbd5e1;
+            color: #475569;
+        }
+        .tracker-dark-dashboard.light-mode .pagination-buttons button {
+            color: #475569;
+        }
+        .tracker-dark-dashboard.light-mode .pagination-buttons button:hover {
+            color: #0f172a;
+        }
+    </style>
 
-                <div class="form-group mr-3">
-                    <label for="semester" class="mr-2">{{#str}} semester, local_realtime_tracker {{/str}}</label>
-                    <select id="semester" name="semester" class="custom-select">
-                        <option value="">{{#str}} allsemesters, local_realtime_tracker {{/str}}</option>
-                        <option value="01" {{#sem01}}selected{{/sem01}}>{{#str}} firstsemester, local_realtime_tracker {{/str}}</option>
-                        <option value="02" {{#sem02}}selected{{/sem02}}>{{#str}} secondsemester, local_realtime_tracker {{/str}}</option>
-                    </select>
-                </div>
-
+    <div class="filter-bar">
+        <form class="form-inline w-100" method="get" action="{{currenturl}}" style="display: flex; gap: 15px; flex-wrap: wrap; width: 100%;">
+            <div class="form-group">
+                <label for="categoryid">{{#str}} category, local_realtime_tracker {{/str}}</label>
+                <select id="categoryid" name="categoryid" class="custom-select">
+                    <option value="0">{{#str}} all, local_realtime_tracker {{/str}}</option>
+                    {{#topcategories}}
+                        <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                    {{/topcategories}}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="subcategoryid">{{#str}} subcategory, local_realtime_tracker {{/str}}</label>
+                <select id="subcategoryid" name="subcategoryid" class="custom-select">
+                    <option value="0">{{#str}} all, local_realtime_tracker {{/str}}</option>
+                    {{#subcategories}}
+                        <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                    {{/subcategories}}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="year">{{#str}} year, local_realtime_tracker {{/str}}</label>
+                <input type="number" id="year" name="year" class="form-control" value="{{year}}" placeholder="YYYY">
+            </div>
+            <div class="form-group">
+                <label for="semester">{{#str}} semester, local_realtime_tracker {{/str}}</label>
+                <select id="semester" name="semester" class="custom-select">
+                    <option value="">{{#str}} allsemesters, local_realtime_tracker {{/str}}</option>
+                    <option value="01" {{#sem01}}selected{{/sem01}}>{{#str}} firstsemester, local_realtime_tracker {{/str}}</option>
+                    <option value="02" {{#sem02}}selected{{/sem02}}>{{#str}} secondsemester, local_realtime_tracker {{/str}}</option>
+                </select>
+            </div>
+            <div class="form-group" style="justify-content: flex-end;">
                 <button type="submit" class="btn btn-primary">{{#str}} filter, local_realtime_tracker {{/str}}</button>
-            </form>
+            </div>
+        </form>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-title">Total Escuelas</div>
+            <div class="stat-value">{{total_schools}}</div>
+            <i class="fa fa-university icon-bg"></i>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Total Cursos</div>
+            <div class="stat-value">{{total_courses}}</div>
+            <i class="fa fa-book icon-bg"></i>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Total Docentes</div>
+            <div class="stat-value">{{total_teachers}}</div>
+            <i class="fa fa-users icon-bg"></i>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Recursos Compartidos</div>
+            <div class="stat-value">{{total_shared}}</div>
+            <i class="fa fa-share-alt icon-bg"></i>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Créditos IA Usados</div>
+            <div class="stat-value">{{total_ai_credits}}</div>
+            <i class="fa fa-robot icon-bg"></i>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-10 offset-md-1">
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">{{#str}} resourcedistribution, local_realtime_tracker {{/str}}</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-12 mb-4">
-                            {{{chart1}}}
-                        </div>
-                        <div class="col-md-8 offset-md-2">
-                            <table class="table table-bordered table-sm">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th>{{#str}} resource, local_realtime_tracker {{/str}}</th>
-                                        <th class="text-center">{{#str}} total, local_realtime_tracker {{/str}}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {{#chart_data}}
-                                    <tr>
-                                        <td>{{label}}</td>
-                                        <td class="text-center"><strong>{{value}}</strong></td>
-                                    </tr>
-                                    {{/chart_data}}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+    <div class="charts-grid">
+        <div class="panel-card">
+            <h3>Recursos por Escuela</h3>
+            <div style="height: 300px; width: 100%;">
+                <canvas id="chartSchools"></canvas>
+            </div>
+        </div>
+        <div class="panel-card">
+            <h3>Composición de Recursos</h3>
+            <div style="height: 300px; width: 100%;">
+                <canvas id="chartComp"></canvas>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">{{#str}} results, local_realtime_tracker {{/str}}</h5>
-            <div class="d-flex align-items-center">
-                <button type="button" class="btn btn-info mr-2" data-action="email-report">
-                    <i class="fa fa-envelope"></i> {{#str}} sendtoteachers, local_realtime_tracker {{/str}}
+    <div class="top-lists-grid">
+        <div class="panel-card">
+            <h3><i class="fa fa-university text-info"></i> Top 10 Escuelas</h3>
+            <div class="list-container">
+                {{#top_schools}}
+                <div class="list-item">
+                    <div class="rank">{{rank}}</div>
+                    <div class="name" title="{{name}}">{{name}}</div>
+                    <div class="value">{{total}}</div>
+                </div>
+                {{/top_schools}}
+                {{^top_schools}}<div class="text-center text-muted mt-3">Sin datos</div>{{/top_schools}}
+            </div>
+        </div>
+        <div class="panel-card">
+            <h3><i class="fa fa-trophy text-warning"></i> Top 10 Docentes</h3>
+            <div class="list-container">
+                {{#top_teachers}}
+                <div class="list-item">
+                    <div class="rank {{#rank}}rank-{{rank}}{{/rank}}">{{rank}}</div>
+                    <div class="name" title="{{name}}">{{name}}<small>{{school}}</small></div>
+                    <div class="value">{{total}}</div>
+                </div>
+                {{/top_teachers}}
+                {{^top_teachers}}<div class="text-center text-muted mt-3">Sin datos</div>{{/top_teachers}}
+            </div>
+        </div>
+        <div class="panel-card">
+            <h3><i class="fa fa-robot text-pink"></i> Top 10 Docentes (IA)</h3>
+            <div class="list-container">
+                {{#top_teachers_ai}}
+                <div class="list-item">
+                    <div class="rank">{{rank}}</div>
+                    <div class="name" title="{{name}}">{{name}}<small>{{school}}</small></div>
+                    <div class="value pink">{{ai}}</div>
+                </div>
+                {{/top_teachers_ai}}
+                {{^top_teachers_ai}}<div class="text-center text-muted mt-3">Sin datos</div>{{/top_teachers_ai}}
+            </div>
+        </div>
+        <div class="panel-card">
+            <h3><i class="fa fa-exclamation-circle text-danger"></i> Docentes con 0 Rec. <span class="badge-danger-custom">{{zero_rec_teachers_count}}</span></h3>
+            <div class="list-container">
+                {{#zero_rec_teachers}}
+                <div class="list-item">
+                    <div class="name" title="{{name}}"><i class="fa fa-user text-muted mr-2"></i> {{name}}<small>{{school}}</small></div>
+                    <div class="value danger">0 Recursos</div>
+                </div>
+                {{/zero_rec_teachers}}
+                {{^zero_rec_teachers}}<div class="text-center text-muted mt-3">Sin datos</div>{{/zero_rec_teachers}}
+            </div>
+        </div>
+    </div>
+    
+    <div class="panel-card">
+        <h3>Uso de IA por Escuela</h3>
+        <div style="height: 250px; width: 100%;">
+            <canvas id="chartAi"></canvas>
+        </div>
+    </div>
+
+    <div class="panel-card" style="padding: 0; overflow: hidden;">
+        <div style="padding: 20px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0;">Detalle de Registros</h3>
+            <div class="header-actions">
+                <button type="button" class="btn-export" id="tracker-theme-toggle" title="Cambiar Tema">
+                    <i class="fa fa-sun-o"></i>
+                </button>
+                <button type="button" class="btn-export" data-action="email-report" title="Enviar reporte">
+                    <i class="fa fa-envelope"></i>
                 </button>
                 <div class="dropdown d-inline-block">
-                    <button class="btn btn-danger dropdown-toggle" type="button" id="exportResourcesDropdown" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-download"></i> {{#str}} export, local_realtime_tracker {{/str}}
+                    <button class="btn-export dropdown-toggle" type="button" id="exportResourcesDropdown" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-download"></i> Exportar
                     </button>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="exportResourcesDropdown">
-                        <a class="dropdown-item" href="#" data-action="export-report" data-format="pdf"><i class="fa fa-file-pdf-o text-danger"></i> {{#str}} exportpdf, local_realtime_tracker {{/str}}</a>
-                        <a class="dropdown-item" href="#" data-action="export-report" data-format="doc"><i class="fa fa-file-word-o text-primary"></i> {{#str}} exportdoc, local_realtime_tracker {{/str}}</a>
-                        <a class="dropdown-item" href="#" data-action="export-report" data-format="xlsx"><i class="fa fa-file-excel-o text-success"></i> {{#str}} exportexcel, local_realtime_tracker {{/str}}</a>
-                        <a class="dropdown-item" href="#" data-action="export-report" data-format="xml"><i class="fa fa-file-code-o text-warning"></i> {{#str}} exportxml, local_realtime_tracker {{/str}}</a>
+                        <a class="dropdown-item" href="#" data-action="export-report" data-format="pdf"><i class="fa fa-file-pdf-o text-danger"></i> PDF</a>
+                        <a class="dropdown-item" href="#" data-action="export-report" data-format="doc"><i class="fa fa-file-word-o text-primary"></i> Word</a>
+                        <a class="dropdown-item" href="#" data-action="export-report" data-format="xlsx"><i class="fa fa-file-excel-o text-success"></i> Excel</a>
+                        <a class="dropdown-item" href="#" data-action="export-report" data-format="xml"><i class="fa fa-file-code-o text-warning"></i> XML</a>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="card-body table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead class="thead-light">
+        <div class="table-responsive">
+            <table>
+                <thead>
                     <tr>
-                        <th>{{#str}} school, local_realtime_tracker {{/str}}</th>
-                        <th>{{#str}} courses, local_realtime_tracker {{/str}}</th>
-                        <th>{{#str}} teacher, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} url, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} label, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} assignment, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} forums, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} files, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} teams, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} folder, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} sharedresources, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} students, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} connectiontime, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} creationtime, local_realtime_tracker {{/str}}</th>
-                        <th class="text-center">{{#str}} action, local_realtime_tracker {{/str}}</th>
+                        <th>ESCUELA</th>
+                        <th>CURSO</th>
+                        <th>DOCENTE</th>
+                        <th class="text-center" title="Créditos IA">CRÉDITOS IA</th>
+                        <th class="text-center" title="URL">URL</th>
+                        <th class="text-center" title="Archivos">ARCHIVOS</th>
+                        <th class="text-center" title="Tareas">TAREAS</th>
+                        <th class="text-center" title="Foros">FOROS</th>
+                        <th class="text-center" title="Carpetas">CARPETA</th>
+                        <th class="text-center" title="Recursos Compartidos">REC. COMP.</th>
+                        <th class="text-center" title="Estudiantes">ESTUDIANTES</th>
+                        <th class="text-center" title="Acción">ACCIÓN</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tracker-table-body">
                     {{#results}}
-                    <tr>
+                    <tr class="tracker-row">
                         <td>{{categoryname}}</td>
-                        <td>{{coursename}}<br><small><a href="{{courseurl}}" target="_blank">{{shortname}}</a></small></td>
-                        <td>{{teachername}}</td>
-                        <td class="text-center {{#url_iszero}}text-danger font-weight-bold{{/url_iszero}}">{{url_count}}</td>
-                        <td class="text-center {{#label_iszero}}text-danger font-weight-bold{{/label_iszero}}">{{label_count}}</td>
-                        <td class="text-center {{#assign_iszero}}text-danger font-weight-bold{{/assign_iszero}}">{{assign_count}}</td>
-                        <td class="text-center {{#forum_iszero}}text-danger font-weight-bold{{/forum_iszero}}">{{forum_count}}</td>
-                        <td class="text-center {{#file_iszero}}text-danger font-weight-bold{{/file_iszero}}">{{file_count}}</td>
-                        <td class="text-center {{#teams_iszero}}text-danger font-weight-bold{{/teams_iszero}}">{{teams_count}}</td>
-                        <td class="text-center {{#folder_iszero}}text-danger font-weight-bold{{/folder_iszero}}">{{folder_count}}</td>
-                        <td class="text-center text-success {{#shared_iszero}}text-danger font-weight-bold{{/shared_iszero}}"><strong>{{shared_count}}</strong></td>
+                        <td>{{coursename}}<br><small><a href="{{courseurl}}" target="_blank" style="color:#38bdf8;">{{shortname}}</a></small></td>
+                        <td>
+                            {{teachername}}
+                            {{#is_excellent}}
+                            <br><span class="badge-excellent"><i class="fa fa-trophy"></i> Excelente</span>
+                            {{/is_excellent}}
+                            {{#is_congrats}}
+                            <br><span class="badge-congrats"><i class="fa fa-star"></i> ¡Felicitaciones!</span>
+                            {{/is_congrats}}
+                        </td>
+                        <td class="text-center {{#ai_credits}}text-pink{{/ai_credits}}">{{ai_credits}}</td>
+                        <td class="text-center {{#url_has_data}}text-amber{{/url_has_data}} {{#url_iszero}}text-danger font-weight-bold{{/url_iszero}}">{{url_count}}</td>
+                        <td class="text-center {{#file_has_data}}text-amber{{/file_has_data}} {{#file_iszero}}text-danger font-weight-bold{{/file_iszero}}">{{file_count}}</td>
+                        <td class="text-center {{#assign_is_low}}text-danger font-weight-bold{{/assign_is_low}}">{{assign_count}}</td>
+                        <td class="text-center {{#forum_is_low}}text-danger font-weight-bold{{/forum_is_low}}">{{forum_count}}</td>
+                        <td class="text-center {{#folder_has_data}}text-amber{{/folder_has_data}} {{#folder_iszero}}text-danger font-weight-bold{{/folder_iszero}}">{{folder_count}}</td>
+                        <td class="text-center {{#shared_is_good}}text-green{{/shared_is_good}} {{#shared_iszero}}text-danger font-weight-bold{{/shared_iszero}}">{{shared_count}}</td>
                         <td class="text-center {{#student_iszero}}text-danger font-weight-bold{{/student_iszero}}">{{student_count}}</td>
-                        <td class="text-center text-info"><strong>{{connectiontime}}</strong></td>
-                        <td class="text-center text-primary"><strong>{{creationtime}}</strong></td>
                         <td class="text-center">
-                            <a href="{{detailurl}}" class="btn btn-sm btn-info text-white" target="_blank" title="{{#str}} viewdetail, local_realtime_tracker {{/str}}"><i class="fa fa-eye"></i></a>
+                            <a href="{{detailurl}}" class="btn btn-sm btn-info text-white" target="_blank" title="Ver detalle"><i class="fa fa-eye"></i></a>
                         </td>
                     </tr>
                     {{/results}}
                     {{^results}}
                     <tr>
-                        <td colspan="15" class="text-center">{{#str}} nodata, local_realtime_tracker {{/str}}</td>
+                        <td colspan="11" class="text-center py-4">No hay datos para mostrar</td>
                     </tr>
                     {{/results}}
                 </tbody>
             </table>
         </div>
+        <div class="pagination-controls">
+            <span id="tracker-pagination-info">Mostrando registros.</span>
+            <div class="pagination-buttons">
+                <button type="button" id="tracker-btn-prev">Anterior</button>
+                <button type="button" id="tracker-btn-next">Siguiente</button>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="mt-4 text-center text-muted">
-    <small>{{#str}} footercredit, local_realtime_tracker {{/str}}</small>
-</div>
+{{#js}}
+require(['core/chartjs'], function(Chart) {
+    // Theme Toggle Logic
+    var themeToggle = document.getElementById('tracker-theme-toggle');
+    var dashboard = document.querySelector('.tracker-dark-dashboard');
+    var icon = themeToggle.querySelector('i');
+    
+    if (localStorage.getItem('tracker-theme') === 'light') {
+        dashboard.classList.add('light-mode');
+        icon.classList.remove('fa-sun-o');
+        icon.classList.add('fa-moon-o');
+    }
+    
+    themeToggle.addEventListener('click', function() {
+        dashboard.classList.toggle('light-mode');
+        if (dashboard.classList.contains('light-mode')) {
+            icon.classList.remove('fa-sun-o');
+            icon.classList.add('fa-moon-o');
+            localStorage.setItem('tracker-theme', 'light');
+        } else {
+            icon.classList.remove('fa-moon-o');
+            icon.classList.add('fa-sun-o');
+            localStorage.setItem('tracker-theme', 'dark');
+        }
+    });
+
+    // Pagination Logic
+    var rows = document.querySelectorAll('.tracker-row');
+    var rowsPerPage = 20;
+    var currentPage = 1;
+    var totalRows = rows.length;
+    var totalPages = Math.ceil(totalRows / rowsPerPage);
+    
+    function renderTable() {
+        if (totalRows === 0) return;
+        var start = (currentPage - 1) * rowsPerPage;
+        var end = start + rowsPerPage;
+        
+        rows.forEach(function(row, index) {
+            if (index >= start && index < end) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        var actualEnd = end > totalRows ? totalRows : end;
+        document.getElementById('tracker-pagination-info').innerText = 'Mostrando ' + (start + 1) + ' a ' + actualEnd + ' de ' + totalRows + ' registros';
+        
+        document.getElementById('tracker-btn-prev').disabled = (currentPage === 1);
+        document.getElementById('tracker-btn-next').disabled = (currentPage === totalPages || totalPages === 0);
+    }
+    
+    document.getElementById('tracker-btn-prev').addEventListener('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
+    });
+    
+    document.getElementById('tracker-btn-next').addEventListener('click', function() {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTable();
+        }
+    });
+    
+    renderTable();
+
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = '#334155';
+    
+    // Configuración para el gráfico de Escuelas (Barras Apiladas)
+    var ctxSchools = document.getElementById('chartSchools').getContext('2d');
+    new Chart(ctxSchools, {
+        type: 'bar',
+        data: {
+            labels: {{{chart_schools_labels}}},
+            datasets: [
+                { label: 'URL', data: {{{chart_schools_url}}}, backgroundColor: '#4e79a7' },
+                { label: 'Archivos', data: {{{chart_schools_file}}}, backgroundColor: '#f28e2b' },
+                { label: 'Tareas', data: {{{chart_schools_assign}}}, backgroundColor: '#e15759' },
+                { label: 'Foros', data: {{{chart_schools_forum}}}, backgroundColor: '#76b7b2' }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true, grid: { display: false } },
+                y: { stacked: true, grid: { color: '#334155' } }
+            },
+            plugins: {
+                legend: { position: 'top', labels: { color: '#e2e8f0' } }
+            }
+        }
+    });
+
+    // Configuración para el gráfico de Composición (Donut)
+    var ctxComp = document.getElementById('chartComp').getContext('2d');
+    new Chart(ctxComp, {
+        type: 'doughnut',
+        data: {
+            labels: {{{chart_comp_labels}}},
+            datasets: [{
+                data: {{{chart_comp_data}}},
+                backgroundColor: ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f', '#edc948'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'right', labels: { color: '#e2e8f0' } }
+            }
+        }
+    });
+
+    // Configuración para el gráfico de IA por Escuela
+    var ctxAi = document.getElementById('chartAi').getContext('2d');
+    new Chart(ctxAi, {
+        type: 'bar',
+        data: {
+            labels: {{{chart_ai_labels}}},
+            datasets: [{
+                label: 'Créditos IA',
+                data: {{{chart_ai_data}}},
+                backgroundColor: '#f472b6',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: '#334155' } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+    
+    // Add colors to ranks
+    var gold = document.querySelector('.rank-1'); if(gold) { gold.classList.add('gold'); }
+    var silver = document.querySelector('.rank-2'); if(silver) { silver.classList.add('silver'); }
+    var bronze = document.querySelector('.rank-3'); if(bronze) { bronze.classList.add('bronze'); }
+});
+{{/js}}
