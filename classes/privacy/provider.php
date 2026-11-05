@@ -86,21 +86,21 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
         $contextlist = new contextlist();
         $sql = "SELECT ctx.id
                   FROM {context} ctx
-                  JOIN {local_realtime_tracker_logs} l ON l.courseid = ctx.instanceid
+                  JOIN {local_realtime_tracker_logs} l ON l.course_id = ctx.instanceid
                  WHERE ctx.contextlevel = :contextlevel1
-                   AND l.userid = :userid1
+                   AND l.user_id = :userid1
                  UNION
                 SELECT ctx.id
                   FROM {context} ctx
-                  JOIN {local_realtime_tracker_summ} s ON s.courseid = ctx.instanceid
+                  JOIN {local_realtime_tracker_summ} s ON s.course_id = ctx.instanceid
                  WHERE ctx.contextlevel = :contextlevel2
-                   AND s.userid = :userid2
+                   AND s.user_id = :userid2
                  UNION
                 SELECT ctx.id
                   FROM {context} ctx
-                  JOIN {local_realtime_tracker_acts} a ON a.courseid = ctx.instanceid
+                  JOIN {local_realtime_tracker_acts} a ON a.course_id = ctx.instanceid
                  WHERE ctx.contextlevel = :contextlevel3
-                   AND a.userid = :userid3";
+                   AND a.user_id = :userid3";
         $params = [
             'contextlevel1' => CONTEXT_COURSE,
             'userid1' => $userid,
@@ -125,9 +125,9 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
         }
 
         $params = ['courseid' => $context->instanceid];
-        $userlist->add_from_sql('userid', 'SELECT userid FROM {local_realtime_tracker_logs} WHERE courseid = :courseid', $params);
-        $userlist->add_from_sql('userid', 'SELECT userid FROM {local_realtime_tracker_summ} WHERE courseid = :courseid', $params);
-        $userlist->add_from_sql('userid', 'SELECT userid FROM {local_realtime_tracker_acts} WHERE courseid = :courseid', $params);
+        $userlist->add_from_sql('userid', 'SELECT user_id AS userid FROM {local_realtime_tracker_logs} WHERE course_id = :courseid', $params);
+        $userlist->add_from_sql('userid', 'SELECT user_id AS userid FROM {local_realtime_tracker_summ} WHERE course_id = :courseid', $params);
+        $userlist->add_from_sql('userid', 'SELECT user_id AS userid FROM {local_realtime_tracker_acts} WHERE course_id = :courseid', $params);
     }
 
     /**
@@ -153,8 +153,8 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
             $subcontext = [get_string('pluginname', $component)];
 
             $logs = $DB->get_records('local_realtime_tracker_logs', [
-                'userid' => $userid,
-                'courseid' => $courseid,
+                'user_id' => $userid,
+                'course_id' => $courseid,
             ]);
             if ($logs) {
                 writer::with_context($context)->export_data(
@@ -164,8 +164,8 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
             }
 
             $summary = $DB->get_record('local_realtime_tracker_summ', [
-                'userid' => $userid,
-                'courseid' => $courseid,
+                'user_id' => $userid,
+                'course_id' => $courseid,
             ]);
             if ($summary) {
                 writer::with_context($context)->export_data(
@@ -175,8 +175,8 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
             }
 
             $acts = $DB->get_records('local_realtime_tracker_acts', [
-                'userid' => $userid,
-                'courseid' => $courseid,
+                'user_id' => $userid,
+                'course_id' => $courseid,
             ]);
             if ($acts) {
                 writer::with_context($context)->export_data(
@@ -200,9 +200,9 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
         }
 
         $courseid = $context->instanceid;
-        $DB->delete_records('local_realtime_tracker_logs', ['courseid' => $courseid]);
-        $DB->delete_records('local_realtime_tracker_summ', ['courseid' => $courseid]);
-        $DB->delete_records('local_realtime_tracker_acts', ['courseid' => $courseid]);
+        $DB->delete_records('local_realtime_tracker_logs', ['course_id' => $courseid]);
+        $DB->delete_records('local_realtime_tracker_summ', ['course_id' => $courseid]);
+        $DB->delete_records('local_realtime_tracker_acts', ['course_id' => $courseid]);
     }
 
     /**
@@ -222,7 +222,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
             if ($context->contextlevel != CONTEXT_COURSE) {
                 continue;
             }
-            $params = ['userid' => $userid, 'courseid' => $context->instanceid];
+            $params = ['user_id' => $userid, 'course_id' => $context->instanceid];
             $DB->delete_records('local_realtime_tracker_logs', $params);
             $DB->delete_records('local_realtime_tracker_summ', $params);
             $DB->delete_records('local_realtime_tracker_acts', $params);
@@ -249,7 +249,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
 
         list($insql, $inparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
         $params = $inparams + ['courseid' => $context->instanceid];
-        $select = "courseid = :courseid AND userid {$insql}";
+        $select = "course_id = :courseid AND user_id {$insql}";
 
         $DB->delete_records_select('local_realtime_tracker_logs', $select, $params);
         $DB->delete_records_select('local_realtime_tracker_summ', $select, $params);

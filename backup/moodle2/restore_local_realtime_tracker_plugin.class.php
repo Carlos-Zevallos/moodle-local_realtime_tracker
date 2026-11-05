@@ -61,10 +61,17 @@ class restore_local_realtime_tracker_plugin extends restore_local_plugin {
         global $DB;
 
         $data = (object)$data;
-        $data->courseid = $this->task->get_courseid();
-        $data->userid = $this->get_mappingid('user', $data->userid);
-        if (!$data->userid) {
+        $data->course_id = $this->task->get_courseid();
+        $userid = !empty($data->user_id) ? $data->user_id : ($data->userid ?? 0);
+        $data->user_id = $this->get_mappingid('user', $userid);
+        if (!$data->user_id) {
             return;
+        }
+        if (isset($data->courseid)) {
+            unset($data->courseid);
+        }
+        if (isset($data->userid)) {
+            unset($data->userid);
         }
         if (!empty($data->cmid)) {
             $mappedcmid = $this->get_mappingid('course_module', $data->cmid);
@@ -83,15 +90,22 @@ class restore_local_realtime_tracker_plugin extends restore_local_plugin {
         global $DB;
 
         $data = (object)$data;
-        $data->courseid = $this->task->get_courseid();
-        $data->userid = $this->get_mappingid('user', $data->userid);
-        if (!$data->userid) {
+        $data->course_id = $this->task->get_courseid();
+        $userid = !empty($data->user_id) ? $data->user_id : ($data->userid ?? 0);
+        $data->user_id = $this->get_mappingid('user', $userid);
+        if (!$data->user_id) {
             return;
+        }
+        if (isset($data->courseid)) {
+            unset($data->courseid);
+        }
+        if (isset($data->userid)) {
+            unset($data->userid);
         }
         unset($data->id);
         if ($DB->record_exists('local_realtime_tracker_summ', [
-            'courseid' => $data->courseid,
-            'userid' => $data->userid,
+            'course_id' => $data->course_id,
+            'user_id' => $data->user_id,
         ])) {
             return;
         }
@@ -107,10 +121,17 @@ class restore_local_realtime_tracker_plugin extends restore_local_plugin {
         global $DB;
 
         $data = (object)$data;
-        $data->courseid = $this->task->get_courseid();
-        $data->userid = $this->get_mappingid('user', $data->userid);
-        if (!$data->userid) {
+        $data->course_id = $this->task->get_courseid();
+        $userid = !empty($data->user_id) ? $data->user_id : ($data->userid ?? 0);
+        $data->user_id = $this->get_mappingid('user', $userid);
+        if (!$data->user_id) {
             return;
+        }
+        if (isset($data->courseid)) {
+            unset($data->courseid);
+        }
+        if (isset($data->userid)) {
+            unset($data->userid);
         }
         if (!empty($data->cmid)) {
             $mappedcmid = $this->get_mappingid('course_module', $data->cmid);
@@ -121,8 +142,8 @@ class restore_local_realtime_tracker_plugin extends restore_local_plugin {
         }
         unset($data->id);
         if ($DB->record_exists('local_realtime_tracker_acts', [
-            'courseid' => $data->courseid,
-            'userid' => $data->userid,
+            'course_id' => $data->course_id,
+            'user_id' => $data->user_id,
             'cmid' => $data->cmid,
         ])) {
             return;

@@ -47,35 +47,35 @@ class backup_local_realtime_tracker_plugin extends backup_local_plugin {
 
         $logs = new backup_nested_element('logs');
         $log = new backup_nested_element('log', ['id'], [
-            'userid', 'cmid', 'time_spent', 'action_type', 'last_ping', 'session_id',
+            'user_id', 'cmid', 'time_spent', 'action_type', 'last_ping', 'session_id',
         ]);
         $wrapper->add_child($logs);
         $logs->add_child($log);
 
         $summaries = new backup_nested_element('summaries');
         $summary = new backup_nested_element('summary', ['id'], [
-            'userid', 'total_active_seconds', 'access_count', 'first_access', 'last_access',
+            'user_id', 'total_active_seconds', 'access_count', 'first_access', 'last_access',
         ]);
         $wrapper->add_child($summaries);
         $summaries->add_child($summary);
 
         $activities = new backup_nested_element('activities');
         $activity = new backup_nested_element('activity', ['id'], [
-            'userid', 'cmid', 'active_seconds', 'create_seconds', 'ai_seconds', 'entries',
+            'user_id', 'cmid', 'active_seconds', 'create_seconds', 'ai_seconds', 'entries',
         ]);
         $wrapper->add_child($activities);
         $activities->add_child($activity);
 
         if ($userinfo) {
-            $log->set_source_table('local_realtime_tracker_logs', ['courseid' => backup::VAR_COURSEID]);
-            $summary->set_source_table('local_realtime_tracker_summ', ['courseid' => backup::VAR_COURSEID]);
-            $activity->set_source_table('local_realtime_tracker_acts', ['courseid' => backup::VAR_COURSEID]);
+            $log->set_source_table('local_realtime_tracker_logs', ['course_id' => backup::VAR_COURSEID]);
+            $summary->set_source_table('local_realtime_tracker_summ', ['course_id' => backup::VAR_COURSEID]);
+            $activity->set_source_table('local_realtime_tracker_acts', ['course_id' => backup::VAR_COURSEID]);
         }
 
-        $log->annotate_ids('user', 'userid');
+        $log->annotate_ids('user', 'user_id');
         $log->annotate_ids('course_module', 'cmid');
-        $summary->annotate_ids('user', 'userid');
-        $activity->annotate_ids('user', 'userid');
+        $summary->annotate_ids('user', 'user_id');
+        $activity->annotate_ids('user', 'user_id');
         $activity->annotate_ids('course_module', 'cmid');
 
         return $plugin;

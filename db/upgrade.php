@@ -57,5 +57,29 @@ function xmldb_local_realtime_tracker_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026082800, 'local', 'realtime_tracker');
     }
 
+    if ($oldversion < 2026092100) {
+        $tables = [
+            'local_realtime_tracker_logs',
+            'local_realtime_tracker_summ',
+            'local_realtime_tracker_acts'
+        ];
+
+        foreach ($tables as $tablename) {
+            $table = new xmldb_table($tablename);
+            
+            $coursefield = new xmldb_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'userid');
+            if ($dbman->field_exists($table, $coursefield)) {
+                $dbman->rename_field($table, $coursefield, 'course_id');
+            }
+
+            $userfield = new xmldb_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'id');
+            if ($dbman->field_exists($table, $userfield)) {
+                $dbman->rename_field($table, $userfield, 'user_id');
+            }
+        }
+
+        upgrade_plugin_savepoint(true, 2026092100, 'local', 'realtime_tracker');
+    }
+
     return true;
 }

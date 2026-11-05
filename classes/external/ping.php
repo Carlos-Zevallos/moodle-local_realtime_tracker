@@ -81,8 +81,8 @@ class ping extends external_api {
         $now = time();
 
         $log = new \stdClass();
-        $log->userid = $USER->id;
-        $log->courseid = $params['courseid'];
+        $log->user_id = $USER->id;
+        $log->course_id = $params['courseid'];
         $log->cmid = $params['cmid'];
         $log->time_spent = $deltatime;
         $log->action_type = $params['actiontype'];
@@ -91,8 +91,8 @@ class ping extends external_api {
         $DB->insert_record('local_realtime_tracker_logs', $log);
 
         $summary = $DB->get_record('local_realtime_tracker_summ', [
-            'userid' => $USER->id,
-            'courseid' => $params['courseid'],
+            'user_id' => $USER->id,
+            'course_id' => $params['courseid'],
         ]);
         if ($summary) {
             $previousaccess = (int)$summary->last_access;
@@ -104,8 +104,8 @@ class ping extends external_api {
             $DB->update_record('local_realtime_tracker_summ', $summary);
         } else {
             $summary = new \stdClass();
-            $summary->userid = $USER->id;
-            $summary->courseid = $params['courseid'];
+            $summary->user_id = $USER->id;
+            $summary->course_id = $params['courseid'];
             $summary->total_active_seconds = $deltatime;
             $summary->access_count = 1;
             $summary->first_access = $now;
@@ -115,8 +115,8 @@ class ping extends external_api {
 
         if ($params['cmid'] > 0) {
             $act = $DB->get_record('local_realtime_tracker_acts', [
-                'userid' => $USER->id,
-                'courseid' => $params['courseid'],
+                'user_id' => $USER->id,
+                'course_id' => $params['courseid'],
                 'cmid' => $params['cmid'],
             ]);
             if ($act) {
@@ -130,8 +130,8 @@ class ping extends external_api {
                 $DB->update_record('local_realtime_tracker_acts', $act);
             } else {
                 $act = new \stdClass();
-                $act->userid = $USER->id;
-                $act->courseid = $params['courseid'];
+                $act->user_id = $USER->id;
+                $act->course_id = $params['courseid'];
                 $act->cmid = $params['cmid'];
                 $act->active_seconds = $params['actiontype'] === 'view' ? $deltatime : 0;
                 $act->create_seconds = $params['actiontype'] === 'create' ? $deltatime : 0;

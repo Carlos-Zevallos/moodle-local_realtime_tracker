@@ -140,6 +140,18 @@ define(['core/config', 'core/str'], function(Config, Str) {
                 });
             });
         }
+
+        var emailZeroButton = document.querySelector('[data-action="email-zero-report"]');
+        if (emailZeroButton) {
+            emailZeroButton.addEventListener('click', function() {
+                Str.get_string('emailconfirm', 'local_realtime_tracker').then(function(message) {
+                    if (window.confirm(message)) {
+                        var params = Object.assign({}, baseParams, {zerorec: 1});
+                        submitForm('email_reports.php', params);
+                    }
+                }).then(null, function() {});
+            });
+        }
     };
 
     return {

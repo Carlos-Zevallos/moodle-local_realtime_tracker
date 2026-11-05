@@ -248,23 +248,19 @@
         .tracker-dark-dashboard .text-green { color: #10b981 !important; font-weight: bold; }
         
         .tracker-dark-dashboard .badge-excellent {
-            background-color: #047857;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
+            color: #10b981;
+            font-size: 0.8rem;
             display: inline-block;
             margin-top: 4px;
+            font-weight: 600;
         }
         
         .tracker-dark-dashboard .badge-congrats {
-            background-color: #d97706;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
+            color: #f59e0b;
+            font-size: 0.8rem;
             display: inline-block;
             margin-top: 4px;
+            font-weight: 600;
         }
         
         .tracker-dark-dashboard .pagination-controls {
@@ -514,7 +510,10 @@
             </div>
         </div>
         <div class="panel-card">
-            <h3><i class="fa fa-exclamation-circle text-danger"></i> Docentes con 0 Rec. <span class="badge-danger-custom">{{zero_rec_teachers_count}}</span></h3>
+            <h3 style="display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fa fa-exclamation-circle text-danger"></i> Docentes con 0 Rec. <span class="badge-danger-custom">{{zero_rec_teachers_count}}</span></span>
+                <button type="button" class="btn btn-sm" data-action="email-zero-report" title="Enviar reporte a docentes con 0 recursos" style="background:transparent; border:1px solid #ef4444; color:#ef4444; padding:2px 8px; border-radius:4px; font-size:0.75rem; cursor:pointer;"><i class="fa fa-envelope"></i> Enviar</button>
+            </h3>
             <div class="list-container">
                 {{#zero_rec_teachers}}
                 <div class="list-item">
@@ -583,10 +582,10 @@
                         <td>
                             {{teachername}}
                             {{#is_excellent}}
-                            <br><span class="badge-excellent"><i class="fa fa-trophy"></i> Excelente</span>
+                            <br><span class="badge-excellent">🏆 Excelente</span>
                             {{/is_excellent}}
                             {{#is_congrats}}
-                            <br><span class="badge-congrats"><i class="fa fa-star"></i> ¡Felicitaciones!</span>
+                            <br><span class="badge-congrats">🏅 ¡Felicitaciones!</span>
                             {{/is_congrats}}
                         </td>
                         <td class="text-center {{#ai_credits}}text-pink{{/ai_credits}}">{{ai_credits}}</td>

@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_realtime_tracker';
-$plugin->version   = 2026091713;
+$plugin->version   = 2026092100;
 $plugin->requires  = 2022041900;
 $plugin->maturity  = MATURITY_BETA;
 $plugin->release   = 'v2.1.0';

@@ -103,23 +103,23 @@ class helper {
             unset($students[$teacherid]);
         }
 
-        $summaries = $DB->get_records('local_realtime_tracker_summ', ['courseid' => $courseid]);
+        $summaries = $DB->get_records('local_realtime_tracker_summ', ['course_id' => $courseid]);
         if (!$summaries) {
             return [];
         }
 
         $userids = [];
         foreach ($summaries as $summary) {
-            $userids[] = $summary->userid;
+            $userids[] = $summary->user_id;
         }
         $users = $DB->get_records_list('user', 'id', $userids);
 
         $result = [];
         foreach ($summaries as $summary) {
-            if (!isset($users[$summary->userid])) {
+            if (!isset($users[$summary->user_id])) {
                 continue;
             }
-            $user = $users[$summary->userid];
+            $user = $users[$summary->user_id];
             if (is_siteadmin($user->id)) {
                 continue;
             }
@@ -160,8 +160,8 @@ class helper {
         global $DB;
 
         $acts = $DB->get_records('local_realtime_tracker_acts', [
-            'courseid' => $course->id,
-            'userid' => $userid,
+            'course_id' => $course->id,
+            'user_id' => $userid,
         ]);
         if (!$acts) {
             return [];
@@ -198,14 +198,14 @@ class helper {
         global $DB;
 
         $summary = $DB->get_record('local_realtime_tracker_summ', [
-            'courseid' => $course->id,
-            'userid' => $userid,
+            'course_id' => $course->id,
+            'user_id' => $userid,
         ]);
         $totalseconds = $summary ? (int)$summary->total_active_seconds : 0;
 
         $acts = $DB->get_records('local_realtime_tracker_acts', [
-            'courseid' => $course->id,
-            'userid' => $userid,
+            'course_id' => $course->id,
+            'user_id' => $userid,
         ], '', 'cmid, entries, active_seconds, create_seconds, ai_seconds');
 
         $ai_consumptions = $DB->get_records('aiprovider_datacurso_consumption', ['userid' => $userid], '', 'id, externalid, credits');
@@ -308,9 +308,9 @@ class helper {
     public static function get_institutional_metrics(int $categoryid, int $subcategoryid): array {
         global $DB;
 
-        $sql = "SELECT a.id, a.userid, a.courseid, a.create_seconds, a.ai_seconds, m.name AS modname
+        $sql = "SELECT a.id, a.user_id AS userid, a.course_id AS courseid, a.create_seconds, a.ai_seconds, m.name AS modname
                   FROM {local_realtime_tracker_acts} a
-                  JOIN {course} c ON c.id = a.courseid
+                  JOIN {course} c ON c.id = a.course_id
                   JOIN {course_modules} cm ON cm.id = a.cmid
                   JOIN {modules} m ON m.id = cm.module";
         $params = [];
@@ -398,7 +398,7 @@ class helper {
                   JOIN {role_assignments} ra ON ra.contextid = ctx.id
                   JOIN {role} r ON r.id = ra.roleid AND r.shortname NOT IN ('student', 'guest')
                   JOIN {user} u ON u.id = ra.userid AND u.deleted = 0
-                 WHERE c.id <> :siteid";
+                 WHERE c.id <> :siteid AND c.visible = 1";
 
         $filtercategory = $subcategoryid > 0 ? $subcategoryid : $categoryid;
         if ($filtercategory > 0) {
@@ -437,7 +437,7 @@ class helper {
                     COUNT(cm.id) AS cnt
                FROM {course_modules} cm
                JOIN {modules} m ON m.id = cm.module
-              WHERE cm.course $csql
+              WHERE cm.course $csql AND cm.visible = 1
            GROUP BY cm.course, m.name",
             $cparams
         );
@@ -451,7 +451,7 @@ class helper {
                FROM {course_modules} cm
                JOIN {modules} m ON m.id = cm.module AND m.name = 'forum'
                JOIN {forum} f ON f.id = cm.instance AND f.type <> 'news'
-              WHERE cm.course $csql
+              WHERE cm.course $csql AND cm.visible = 1
            GROUP BY cm.course",
             $cparams
         );
@@ -467,10 +467,10 @@ class helper {
             $studentparams
         );
 
-        $summaries = $DB->get_records_select('local_realtime_tracker_summ', "courseid $csql", $cparams);
+        $summaries = $DB->get_records_select('local_realtime_tracker_summ', "course_id $csql", $cparams);
         $summindex = [];
         foreach ($summaries as $summary) {
-            $summindex[$summary->courseid . '-' . $summary->userid] = (int)$summary->total_active_seconds;
+            $summindex[$summary->course_id . '-' . $summary->user_id] = (int)$summary->total_active_seconds;
         }
 
         $accesses = $DB->get_records_sql(
@@ -481,13 +481,13 @@ class helper {
         );
 
         $creations = $DB->get_records_sql(
-            "SELECT " . $DB->sql_concat('courseid', "'-'", 'userid') . " AS uniqueid,
-                    courseid,
-                    userid,
+            "SELECT " . $DB->sql_concat('course_id', "'-'", 'user_id') . " AS uniqueid,
+                    course_id AS courseid,
+                    user_id AS userid,
                     SUM(create_seconds) AS totalcreation
                FROM {local_realtime_tracker_acts}
-              WHERE courseid $csql
-           GROUP BY courseid, userid",
+              WHERE course_id $csql
+           GROUP BY course_id, user_id",
             $cparams
         );
 
@@ -547,13 +547,13 @@ class helper {
             $has_accessed = isset($accesses[$key]);
             
             $mods = $modsbycourse[$row->courseid] ?? [];
-            $urlcount = $has_accessed ? ($mods['url'] ?? 0) : 0;
-            $labelcount = $has_accessed ? ($mods['label'] ?? 0) : 0;
-            $assigncount = $has_accessed ? (($mods['assign'] ?? 0) + ($mods['assignment'] ?? 0)) : 0;
-            $forumcount = $has_accessed ? (isset($forumcounts[$row->courseid]) ? (int)$forumcounts[$row->courseid]->cnt : 0) : 0;
-            $filecount = $has_accessed ? ($mods['resource'] ?? 0) : 0;
-            $teamscount = $has_accessed ? ($mods['msteams'] ?? 0) : 0;
-            $foldercount = $has_accessed ? ($mods['folder'] ?? 0) : 0;
+            $urlcount = $mods['url'] ?? 0;
+            $labelcount = $mods['label'] ?? 0;
+            $assigncount = ($mods['assign'] ?? 0) + ($mods['assignment'] ?? 0);
+            $forumcount = isset($forumcounts[$row->courseid]) ? (int)$forumcounts[$row->courseid]->cnt : 0;
+            $filecount = $mods['resource'] ?? 0;
+            $teamscount = $mods['msteams'] ?? 0;
+            $foldercount = $mods['folder'] ?? 0;
             $studentcount = isset($studentcounts[$row->courseid]) ? (int)$studentcounts[$row->courseid]->cnt : 0;
             $connection = $summindex[$key] ?? 0;
             $creation = isset($creations[$key]) ? (int)$creations[$key]->totalcreation : 0;

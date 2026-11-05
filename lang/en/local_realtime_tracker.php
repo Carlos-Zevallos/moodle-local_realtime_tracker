@@ -133,7 +133,7 @@ $string['results'] = 'Results';
 $string['sendtoteachers'] = 'Email teachers';
 $string['emailconfirm'] = 'Are you sure you want to send personalised reports to the filtered teachers? This may take a few moments.';
 $string['url'] = 'URL';
-$string['label'] = 'Etiqueta';
+$string['label'] = 'Área de texto y medios';
 $string['assignment'] = 'Tarea';
 $string['forums'] = 'Foros';
 $string['files'] = 'Archivos';
@@ -158,7 +158,7 @@ $string['cifnumber'] = 'CIF number';
 
 // Email.
 $string['emailsubject'] = 'Informe de uso del aula virtual - {$a}';
-$string['emailbody'] = 'Adjunto encontrará su informe de uso del aula virtual.<br><br>Los indicadores en rojo señalan un uso por debajo del estándar institucional para los recursos correspondientes. Para la evaluación del criterio de archivos, la inclusión de carpetas es contabilizada como un equivalente válido.<br><br>Saludos cordiales,<br><br><img src="{$a->firmaurl}" alt="Firma" style="max-width: 400px;"><br><br><div style="font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #4caf50; font-style: italic; margin-top: 15px;">No imprima este correo a menos que sea necesario. Ayudemos a proteger el medio ambiente ...</div>';
+$string['emailbody'] = 'Adjunto a este correo encontrará su informe de uso del aula virtual.<br><br>Le informamos que los indicadores resaltados en color rojo señalan aquellos recursos cuyo uso se encuentra por debajo del estándar institucional establecido.<br><br>Cabe destacar que este informe evalúa principalmente tres criterios: <b>Archivos, Tareas y Foros</b>. Para su consideración, detallamos las siguientes pautas de evaluación:<ul><li>En el criterio de "Archivos", la inclusión de carpetas y enlaces (URLs) se contabiliza como un equivalente válido.</li><li>La utilización de áreas de texto y medios es de carácter opcional.</li><li>El rubro de "Recursos compartidos" refleja la sumatoria total de enlaces (URLs), archivos y carpetas empleados.</li></ul><br>Saludos cordiales,<br><br><img src="{$a->firmaurl}" alt="Firma" width="120" style="width: 120px; height: auto;"><br><br><div style="font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #4caf50; font-style: italic; margin-top: 15px;">No imprima este correo a menos que sea necesario. Ayudemos a proteger el medio ambiente ...</div>';
 $string['emailsent'] = '{$a->sent} of {$a->total} correos enviados exitosamente.';
 $string['emailnone'] = 'No se enviaron correos. Por favor revise su configuración SMTP de Moodle.';
 $string['emailempty'] = 'No hay datos para enviar.';
